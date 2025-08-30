@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const dataDir = path.join(__dirname, "../data_model");
-const dbPath = path.join(dataDir, "builtwith.db");
+const dbPath = path.join(__dirname, "../database", "builtwith.db");
 
 // Utility: parse JSONL using readFileSync + split (utf16le)
 function parseJsonlLines(filePath: string, encoding = "utf16le") {
