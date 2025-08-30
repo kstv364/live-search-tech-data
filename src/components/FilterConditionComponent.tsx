@@ -7,6 +7,7 @@ import { AutocompleteInput } from "@/components/ui/autocomplete-input";
 interface FilterConditionComponentProps {
   filterCondition: FilterCondition;
   onChange: (updatedFilterCondition: FilterCondition) => void;
+  setOpen?: (open: boolean) => void;
 }
 
 const FIELDS: Array<{ value: SearchField; label: string }> = [
@@ -65,7 +66,8 @@ const NUMBER_FIELDS: SearchField[] = [
 
 export const FilterConditionComponent: React.FC<FilterConditionComponentProps> = ({ 
   filterCondition, 
-  onChange
+  onChange,
+  setOpen
 }) => {
   const handleFieldChange = (field: SearchField) => {
     onChange({ ...filterCondition, field, value: "" });
@@ -81,14 +83,19 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
 
   const renderValueInput = () => {
     if (TYPEAHEAD_FIELDS.includes(filterCondition.field)) {
-      return (
+      // Wrap AutocompleteInput in a Popover to ensure dropdown is clickable
+      const Autocomplete = (
         <AutocompleteInput
           field={filterCondition.field}
           value={filterCondition.value as string}
           onChange={handleValueChange}
-          onSelect={handleValueChange}
+          onSelect={(val) => {
+            handleValueChange(val);
+            if (setOpen) setOpen(false);
+          }}
         />
       );
+      return Autocomplete;
     }
 
     if (DATE_FIELDS.includes(filterCondition.field)) {

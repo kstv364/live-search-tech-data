@@ -63,29 +63,33 @@ export function AutocompleteInput({ field, value, onChange, onSelect }: Autocomp
               onChange(e.target.value);
             }}
             onFocus={() => setOpen(true)}
+            autoComplete="off"
             className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             placeholder="Type to search..."
           />
           {value && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute right-0 h-8 w-8 p-0 hover:bg-transparent"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setInputValue("");
-                onChange("");
-                setOpen(false);
-              }}
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Clear</span>
-            </Button>
+            <div className="absolute right-0">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 hover:bg-transparent"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setInputValue("");
+                  onChange("");
+                  setOpen(false);
+                }}
+              >
+                <X className="h-4 w-4" />
+                <span className="sr-only">Clear</span>
+              </Button>
+            </div>
           )}
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start" sideOffset={4} style={{ pointerEvents: 'auto' }}>
         <Command className="w-full">
           <CommandInput
             value={inputValue}
@@ -108,6 +112,7 @@ export function AutocompleteInput({ field, value, onChange, onSelect }: Autocomp
                   setOpen(false);
                 }}
                 className="px-4 py-2 text-sm cursor-pointer"
+                style={{ pointerEvents: 'auto' }}
               >
                 {suggestion}
               </CommandItem>
