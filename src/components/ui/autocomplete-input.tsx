@@ -43,7 +43,11 @@ export function AutocompleteInput({ field, value, onChange, onSelect }: Autocomp
       <div className="flex items-center border rounded-md">
         <CommandInput
           value={value}
-          onValueChange={onChange}
+          onValueChange={(newValue) => {
+            onChange(newValue);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
           className="flex h-10 w-full rounded-md bg-background px-3 py-2 text-sm ring-offset-background"
           placeholder="Type to search..."
         />
@@ -60,7 +64,7 @@ export function AutocompleteInput({ field, value, onChange, onSelect }: Autocomp
           </button>
         )}
       </div>
-      {open && suggestions.length > 0 && (
+      {open && value && suggestions.length > 0 && (
         <div className="absolute top-full z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md">
           <CommandGroup>
             {suggestions.map((suggestion) => (

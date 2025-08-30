@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       case 'tech_name':
         sql = `
           SELECT DISTINCT tech_name as value
-          FROM technologies
+          FROM v_company_tech
           WHERE tech_name LIKE ?
           ORDER BY tech_name
           LIMIT 10
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
       case 'company_name':
         sql = `
           SELECT DISTINCT company_name as value
-          FROM companies
+          FROM v_company_tech
           WHERE company_name LIKE ?
           ORDER BY company_name
           LIMIT 10
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
       case 'root_domain':
         sql = `
           SELECT DISTINCT root_domain as value
-          FROM companies
+          FROM v_company_tech
           WHERE root_domain LIKE ?
           ORDER BY root_domain
           LIMIT 10
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
       case 'country':
         sql = `
           SELECT DISTINCT country as value
-          FROM companies
+          FROM v_company_tech
           WHERE country LIKE ?
           ORDER BY country
           LIMIT 10
@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
       case 'tech_category':
         sql = `
           SELECT DISTINCT tech_category as value
-          FROM technologies
+          FROM v_company_tech
           WHERE tech_category LIKE ?
           ORDER BY tech_category
           LIMIT 10

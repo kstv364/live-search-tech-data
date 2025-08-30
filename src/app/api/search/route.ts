@@ -31,18 +31,16 @@ function buildSearchQuery(searchObject: SearchObject) {
   const params: (string | number)[] = [];
   let query = `
     SELECT DISTINCT
-      c.company_name,
-      c.root_domain,
-      c.company_category,
-      c.country,
-      c.spend,
-      t.tech_name,
-      t.tech_category,
-      d.first_indexed,
-      d.last_indexed
-    FROM companies c
-    JOIN detections d ON c.company_id = d.company_id
-    JOIN technologies t ON d.technology_id = t.technology_id
+      company_name,
+      root_domain,
+      company_category,
+      country,
+      company_spend as spend,
+      tech_name,
+      tech_category,
+      first_detected as first_indexed,
+      last_detected as last_indexed
+    FROM v_company_tech
     WHERE 1=1
   `;
 
@@ -74,10 +72,8 @@ function buildSearchQuery(searchObject: SearchObject) {
 function buildCountQuery(searchObject: SearchObject) {
   const params: (string | number)[] = [];
   let query = `
-    SELECT COUNT(DISTINCT c.company_id) as total
-    FROM companies c
-    JOIN detections d ON c.company_id = d.company_id
-    JOIN technologies t ON d.technology_id = t.technology_id
+    SELECT COUNT(DISTINCT company_id) as total
+    FROM v_company_tech
     WHERE 1=1
   `;
 

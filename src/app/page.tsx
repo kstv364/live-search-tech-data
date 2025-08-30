@@ -33,8 +33,14 @@ export default function Home() {
         body: JSON.stringify(searchObject),
       });
       const data = await response.json();
-      setResults(data.results);
-      setTotalResults(data.total);
+      if (data.error) {
+        console.error("Search error:", data.error);
+        setResults([]);
+        setTotalResults(0);
+      } else {
+        setResults(data.results || []);
+        setTotalResults(data.total || 0);
+      }
     } catch (error) {
       console.error("Search failed:", error);
     }
@@ -89,3 +95,4 @@ export default function Home() {
       />
     </main>
   );
+}

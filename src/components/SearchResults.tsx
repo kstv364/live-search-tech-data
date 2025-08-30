@@ -54,8 +54,8 @@ export function SearchResults({
     onSortChange([{ field, direction: newDirection }]);
   };
 
-  const totalPages = Math.ceil(totalResults / limit);
-  const currentPage = Math.floor(currentOffset / limit) + 1;
+  const totalPages = Math.max(1, Math.ceil((totalResults || 0) / limit));
+  const currentPage = Math.min(totalPages, Math.max(1, Math.floor((currentOffset || 0) / limit) + 1));
 
   return (
     <div className="space-y-4">
