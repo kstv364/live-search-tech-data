@@ -1,0 +1,109 @@
+"use client"
+
+import * as React from "react"
+import { X } from "lucide-react"
+import { Command, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
+
+interface AutocompleteInputProps {
+  field: string;
+  value: string;
+  onChange: (value: string) => void;
+  onSelect: (value: string) => void;
+}
+
+export function AutocompleteInput({ field, value, onChange, onSelect }: AutocompleteInputProps) {
+  const [open, setOpen] = React.useState(false)
+  const [suggestions, setSuggestions] = React.useState<string[]>([])
+  const commandRef = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (!value || value.length < 2) {
+        setSuggestions([]);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/typeahead?field=${encodeURIComponent(field)}&q=${encodeURIComponent(value)}`);
+        if (!response.ok) throw new Error('Failed to fetch suggestions');
+        
+        const data = await response.json();
+        setSuggestions(Array.isArray(data) ? data : []);
+        if (Array.isArray(data) && data.length > 0) {
+          setOpen(true);
+        }
+      } catch (error) {
+        console.error("Failed to fetch suggestions:", error);
+        setSuggestions([]);
+      }
+    };
+
+    const debounceTimer = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [value, field]);
+
+  // Handle clicking outside to close
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (commandRef.current && !commandRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  return (
+    <div className="relative w-full" ref={commandRef}>
+      <div className="flex items-center border rounded-md">
+        <CommandInput
+          value={value}
+          onValueChange={(newValue) => {
+            onChange(newValue);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          className="flex h-10 w-full rounded-md bg-background px-3 py-2 text-sm ring-offset-background"
+          placeholder="Type to search..."
+        />
+        {value && (
+          <button
+            type="button"
+            onClick={() => {
+              onChange("");
+              setOpen(false);
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+      
+      {open && suggestions.length > 0 && (
+        <div className="absolute z-50 mt-2 w-full rounded-md border bg-popover text-popover-foreground shadow-md">
+          <Command>
+            <CommandGroup>
+              {suggestions.map((suggestion) => (
+                <CommandItem
+                  key={suggestion}
+                  onSelect={() => {
+                    onSelect(suggestion);
+                    onChange(suggestion);
+                    setOpen(false);
+                  }}
+                  className="cursor-pointer px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
+                >
+                  {suggestion}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </Command>
+        </div>
+      )}
+    </div>
+  );
+}

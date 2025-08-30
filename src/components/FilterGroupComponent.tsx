@@ -12,13 +12,15 @@ interface FilterGroupComponentProps {
   onChange: (updatedFilterGroup: FilterGroup) => void;
   onRemove?: () => void;
   depth?: number;
+  setOpen: (open: boolean) => void;
 }
 
 const FilterGroupComponent: React.FC<FilterGroupComponentProps> = ({ 
   filterGroup, 
   onChange, 
   onRemove,
-  depth = 0 
+  depth = 0,
+  setOpen
 }) => {
   const handleAddCondition = useCallback(() => {
     onChange({
@@ -111,10 +113,11 @@ const FilterGroupComponent: React.FC<FilterGroupComponentProps> = ({
                 <FilterConditionComponent
                   filterCondition={condition as FilterCondition}
                   onChange={(updated) => handleConditionChange(index, updated)}
+                  setOpen={setOpen}
                 />
                 <Button 
-                  onClick={() => handleRemoveCondition(index)} 
-                  variant="ghost" 
+                  onClick={() => handleRemoveCondition(index)}
+                  variant="ghost"
                   size="icon"
                 >
                   <X className="h-4 w-4" />

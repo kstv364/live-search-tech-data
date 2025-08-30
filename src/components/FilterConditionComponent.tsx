@@ -65,7 +65,7 @@ const NUMBER_FIELDS: SearchField[] = [
 
 export const FilterConditionComponent: React.FC<FilterConditionComponentProps> = ({ 
   filterCondition, 
-  onChange 
+  onChange
 }) => {
   const handleFieldChange = (field: SearchField) => {
     onChange({ ...filterCondition, field, value: "" });

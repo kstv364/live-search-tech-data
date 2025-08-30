@@ -1,11 +1,13 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Command as CommandPrimitive } from "cmdk"
-import { X } from "lucide-react"
+import * as React from "react";
+import { Command as CommandPrimitive } from "cmdk";
+import { X } from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
+import { cn } from "@/lib/utils";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface AutocompleteInputProps {
   field: string;
@@ -15,8 +17,9 @@ interface AutocompleteInputProps {
 }
 
 export function AutocompleteInput({ field, value, onChange, onSelect }: AutocompleteInputProps) {
-  const [open, setOpen] = React.useState(false)
-  const [suggestions, setSuggestions] = React.useState<string[]>([])
+  const [open, setOpen] = React.useState(false);
+  const [suggestions, setSuggestions] = React.useState<string[]>([]);
+  const inputRef = React.useRef<React.ElementRef<typeof CommandPrimitive.Input>>(null);
 
   React.useEffect(() => {
     const fetchSuggestions = async () => {
@@ -39,48 +42,57 @@ export function AutocompleteInput({ field, value, onChange, onSelect }: Autocomp
   }, [value, field]);
 
   return (
-    <Command className="relative">
-      <div className="flex items-center border rounded-md">
-        <CommandInput
-          value={value}
-          onValueChange={(newValue) => {
-            onChange(newValue);
-            setOpen(true);
-          }}
-          onFocus={() => setOpen(true)}
-          className="flex h-10 w-full rounded-md bg-background px-3 py-2 text-sm ring-offset-background"
-          placeholder="Type to search..."
-        />
-        {value && (
-          <button
-            type="button"
-            onClick={() => {
-              onChange("")
-              setOpen(false)
+    <div className="relative">
+      <Command className="relative">
+        <div className="relative">
+          <CommandInput
+            ref={inputRef}
+            value={value}
+            onValueChange={(newValue) => {
+              onChange(newValue);
+              setOpen(true);
             }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
-      </div>
-      {open && value && suggestions.length > 0 && (
-        <div className="absolute top-full z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md">
-          <CommandGroup>
-            {suggestions.map((suggestion) => (
-              <CommandItem
-                key={suggestion}
-                onSelect={() => {
-                  onSelect(suggestion)
-                  setOpen(false)
-                }}
-              >
-                {suggestion}
-              </CommandItem>
-            ))}
-          </CommandGroup>
+            onFocus={() => setOpen(true)}
+            className="h-10 pr-8 w-full"
+            placeholder="Type to search..."
+          />
+          {value && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+              onClick={() => {
+                onChange("");
+                setOpen(false);
+                inputRef.current?.focus();
+              }}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Clear</span>
+            </Button>
+          )}
         </div>
-      )}
-    </Command>
-  )
+        {open && suggestions.length > 0 && (
+          <div className="absolute top-[100%] z-50 w-full bg-white rounded-md border shadow-md mt-1">
+            <CommandList>
+              <CommandEmpty>No results found.</CommandEmpty>
+              <CommandGroup>
+                {suggestions.map((suggestion) => (
+                  <CommandItem
+                    key={suggestion}
+                    onSelect={() => {
+                      onSelect(suggestion);
+                      setOpen(false);
+                    }}
+                  >
+                    {suggestion}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </div>
+        )}
+      </Command>
+    </div>
+  );
 }
