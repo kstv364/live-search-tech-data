@@ -101,12 +101,14 @@ const FilterGroupComponent: React.FC<FilterGroupComponentProps> = ({
           <div key={index} className="relative">
             {'conditions' in condition ? (
               // This is a nested filter group
-              <FilterGroupComponent
-                filterGroup={condition as FilterGroup}
-                onChange={(updated) => handleConditionChange(index, updated)}
-                onRemove={() => handleRemoveCondition(index)}
-                depth={depth + 1}
-              />
+            <FilterGroupComponent
+              filterGroup={condition as FilterGroup}
+              onChange={(updated) => handleConditionChange(index, updated)}
+              onRemove={() => handleRemoveCondition(index)}
+              depth={depth + 1}
+              setOpen={setOpen}   // ✅ forward down
+            />
+
             ) : (
               // This is a filter condition
               <div className="flex items-center gap-2">

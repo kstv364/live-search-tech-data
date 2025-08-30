@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { X } from "lucide-react";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -23,10 +22,18 @@ interface AutocompleteInputProps {
   value: string;
   onChange: (value: string) => void;
   onSelect: (value: string) => void;
+  setOpen?: (open: boolean) => void; // allow parent to control popover if needed
 }
 
-export function AutocompleteInput({ field, value, onChange, onSelect }: AutocompleteInputProps) {
-  const [open, setOpen] = React.useState(false);
+export function AutocompleteInput({
+  field,
+  value,
+  onChange,
+  onSelect,
+  setOpen: externalSetOpen,
+}: AutocompleteInputProps) {
+  const [internalOpen, setInternalOpen] = React.useState(false);
+  const setOpen = externalSetOpen || setInternalOpen; // use parent if passed
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
   const [inputValue, setInputValue] = React.useState(value);
 
@@ -38,7 +45,9 @@ export function AutocompleteInput({ field, value, onChange, onSelect }: Autocomp
       }
 
       try {
-        const response = await fetch(`/api/typeahead?field=${field}&q=${encodeURIComponent(inputValue)}`);
+        const response = await fetch(
+          `/api/typeahead?field=${field}&q=${encodeURIComponent(inputValue)}`
+        );
         const data = await response.json();
         setSuggestions(data);
         setOpen(true);
@@ -49,10 +58,10 @@ export function AutocompleteInput({ field, value, onChange, onSelect }: Autocomp
 
     const debounceTimer = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(debounceTimer);
-  }, [inputValue, field]);
+  }, [inputValue, field, setOpen]);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={internalOpen} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <div className="flex items-center relative w-full">
           <input
@@ -89,30 +98,62 @@ export function AutocompleteInput({ field, value, onChange, onSelect }: Autocomp
           )}
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start" sideOffset={4} style={{ pointerEvents: 'auto' }}>
-        <Command className="w-full">
+
+      <PopoverContent
+        className="w-[var(--radix-popover-trigger-width)] p-0"
+        align="start"
+        sideOffset={4}
+        style={{ pointerEvents: "auto" }}
+        data-autocomplete="true"
+        onInteractOutside={(e) => {
+          // ✅ Prevents Radix from closing popover when clicking inside Command
+          if (
+            e.target instanceof HTMLElement &&
+            e.target.closest("[data-command-root]")
+          ) {
+            e.preventDefault();
+          }
+        }}
+      >
+        <Command className="w-full" data-command-root>
           <CommandInput
             value={inputValue}
-            onValueChange={(value) => {
-              setInputValue(value);
-              onChange(value);
+            onValueChange={(val) => {
+              setInputValue(val);
+              onChange(val);
             }}
             className="h-9"
             placeholder="Type to search..."
           />
-          <CommandEmpty className="py-2 px-4 text-sm text-muted-foreground">No results found.</CommandEmpty>
+          <CommandEmpty className="py-2 px-4 text-sm text-muted-foreground">
+            No results found.
+          </CommandEmpty>
+
           <CommandGroup>
             {suggestions.map((suggestion) => (
               <CommandItem
                 key={suggestion}
                 value={suggestion}
+                // ✅ intercept pointerdown so Radix outside click handler doesn't close too early
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const native = (e as any).nativeEvent as Event | undefined;
+                  if (
+                    native &&
+                    typeof (native as any).stopImmediatePropagation === "function"
+                  ) {
+                    (native as any).stopImmediatePropagation();
+                  }
+                }}
                 onSelect={() => {
                   setInputValue(suggestion);
+                  onChange(suggestion);
                   onSelect(suggestion);
                   setOpen(false);
                 }}
                 className="px-4 py-2 text-sm cursor-pointer"
-                style={{ pointerEvents: 'auto' }}
+                style={{ pointerEvents: "auto" }}
               >
                 {suggestion}
               </CommandItem>
