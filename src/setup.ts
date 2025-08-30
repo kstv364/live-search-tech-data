@@ -447,9 +447,9 @@ SELECT
   st.first_detected,
   st.last_detected
 FROM company c
-JOIN site s ON s.company_id = c.id
-JOIN site_technology st ON st.site_id = s.id
-JOIN technology t ON t.id = st.tech_id;
+LEFT JOIN site s ON s.company_id = c.id
+LEFT JOIN site_technology st ON st.site_id = s.id
+LEFT JOIN technology t ON t.id = st.tech_id;
     `);
 
     // --- Indexes to speed up queries ---
