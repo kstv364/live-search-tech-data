@@ -72,8 +72,7 @@ export function AutocompleteInput({
               onChange(e.target.value);
             }}
             onFocus={() => setOpen(true)}
-            onClick={(e) => e.stopPropagation()} // Prevent PopoverTrigger from toggling immediately
-            autoComplete="off"
+            onClick={(e) => e.stopPropagation()} 
             className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             placeholder="Type to search..."
           />
@@ -106,15 +105,6 @@ export function AutocompleteInput({
         sideOffset={4}
         style={{ pointerEvents: "auto" }}
         data-autocomplete="true"
-        onInteractOutside={(e) => {
-          // ✅ Prevents Radix from closing popover when clicking inside Command
-          if (
-            e.target instanceof HTMLElement &&
-            e.target.closest("[data-command-root]")
-          ) {
-            e.preventDefault();
-          }
-        }}
       >
         <Command className="w-full" data-command-root>
           <CommandInput
@@ -135,18 +125,6 @@ export function AutocompleteInput({
               <CommandItem
                 key={suggestion}
                 value={suggestion}
-                // ✅ intercept pointerdown so Radix outside click handler doesn't close too early
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  const native = (e as any).nativeEvent as Event | undefined;
-                  if (
-                    native &&
-                    typeof (native as any).stopImmediatePropagation === "function"
-                  ) {
-                    (native as any).stopImmediatePropagation();
-                  }
-                }}
                 onSelect={() => {
                   setInputValue(suggestion);
                   onChange(suggestion);
