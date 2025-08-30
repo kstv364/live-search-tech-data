@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { SearchObject } from "@/lib/types";
 import FilterBuilder from "@/components/FilterBuilder";
 import SearchResults from "@/components/SearchResults";
@@ -18,11 +18,19 @@ export default function Home() {
     limit: 10,
     offset: 0,
   });
+  
+  // Reset offset when filters change
+  const handleFilterChange = (newSearchObject: SearchObject) => {
+    setSearchObject({
+      ...newSearchObject,
+      offset: 0 // Reset to first page when filters change
+    });
+  };
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
 
-  const handleSearch = async () => {
+  const search = useCallback(async (params: SearchObject) => {
     setLoading(true);
     try {
       const response = await fetch("/api/search", {
@@ -30,7 +38,7 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(searchObject),
+        body: JSON.stringify(params),
       });
       const data = await response.json();
       if (data.error) {
@@ -45,14 +53,20 @@ export default function Home() {
       console.error("Search failed:", error);
     }
     setLoading(false);
-  };
+  }, []);
 
-  const handlePageChange = (newOffset: number) => {
-    setSearchObject((prev) => ({
-      ...prev,
+  const handleSearch = useCallback(() => {
+    search(searchObject);
+  }, [search, searchObject]);
+
+  const handlePageChange = useCallback((newOffset: number) => {
+    const newSearchObject = {
+      ...searchObject,
       offset: newOffset,
-    }));
-  };
+    };
+    setSearchObject(newSearchObject);
+    search(newSearchObject);
+  }, [search, searchObject]);
 
   return (
     <main className="container mx-auto p-4 space-y-4">
@@ -62,7 +76,8 @@ export default function Home() {
         <div className="lg:col-span-2">
           <Card className="p-4">
             <FilterBuilder
-              onChange={setSearchObject}
+              value={searchObject}
+              onChange={handleFilterChange}
             />
             <div className="mt-4 flex justify-between items-center">
               <Button 

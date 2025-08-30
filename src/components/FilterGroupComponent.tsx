@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { FilterGroup, FilterCondition, SearchField } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,14 +20,14 @@ const FilterGroupComponent: React.FC<FilterGroupComponentProps> = ({
   onRemove,
   depth = 0 
 }) => {
-  const handleAddCondition = () => {
+  const handleAddCondition = useCallback(() => {
     onChange({
       ...filterGroup,
       conditions: [...(filterGroup.conditions || []), { field: "company_name", operator: "=", value: "" }],
     });
-  };
+  }, [filterGroup, onChange]);
 
-  const handleAddGroup = () => {
+  const handleAddGroup = useCallback(() => {
     onChange({
       ...filterGroup,
       conditions: [
@@ -38,30 +38,35 @@ const FilterGroupComponent: React.FC<FilterGroupComponentProps> = ({
         }
       ]
     });
-  };
+  }, [filterGroup, onChange]);
 
-  const handleOperatorChange = (operator: "AND" | "OR" | "NOT") => {
+  const handleOperatorChange = useCallback((operator: "AND" | "OR" | "NOT") => {
     onChange({ ...filterGroup, operator });
-  };
+  }, [filterGroup, onChange]);
 
-  const handleConditionChange = (index: number, updatedCondition: FilterCondition | FilterGroup) => {
+  const handleConditionChange = useCallback((index: number, updatedCondition: FilterCondition | FilterGroup) => {
     const newConditions = [...(filterGroup.conditions || [])];
     newConditions[index] = updatedCondition;
     onChange({ ...filterGroup, conditions: newConditions });
-  };
+  }, [filterGroup, onChange]);
 
-  const handleRemoveCondition = (index: number) => {
+  const handleRemoveCondition = useCallback((index: number) => {
     const newConditions = filterGroup.conditions.filter((_, i) => i !== index);
     onChange({ ...filterGroup, conditions: newConditions });
-  };
+  }, [filterGroup, onChange]);
 
   return (
     <Card className={`p-4 ${depth > 0 ? 'mt-2' : ''}`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Select onValueChange={handleOperatorChange} value={filterGroup.operator}>
+          <Select 
+            defaultValue={filterGroup.operator} 
+            onValueChange={handleOperatorChange}
+          >
             <SelectTrigger className="w-[100px]">
-              <SelectValue placeholder="Operator" />
+              <SelectValue>
+                {filterGroup.operator}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="AND">AND</SelectItem>

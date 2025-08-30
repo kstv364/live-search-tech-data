@@ -30,18 +30,19 @@ export async function POST(req: NextRequest) {
 function buildSearchQuery(searchObject: SearchObject) {
   const params: (string | number)[] = [];
   let query = `
-    SELECT DISTINCT
-      company_name,
-      root_domain,
-      company_category,
-      country,
-      company_spend as spend,
-      tech_name,
-      tech_category,
-      first_detected as first_indexed,
-      last_detected as last_indexed
-    FROM v_company_tech
-    WHERE 1=1
+    WITH filtered_results AS (
+      SELECT DISTINCT
+        company_name,
+        root_domain,
+        company_category,
+        country,
+        company_spend as spend,
+        tech_name,
+        tech_category,
+        first_detected as first_indexed,
+        last_detected as last_indexed
+      FROM v_company_tech
+      WHERE 1=1
   `;
 
   if (searchObject.filters) {
@@ -50,20 +51,16 @@ function buildSearchQuery(searchObject: SearchObject) {
     params.push(...whereParams);
   }
 
+  query += `) SELECT * FROM filtered_results`;
+
   if (searchObject.sort && searchObject.sort.length > 0) {
     query += ' ORDER BY ' + searchObject.sort
       .map(sort => `${sort.field} ${sort.direction}`)
       .join(', ');
   }
 
-  if (typeof searchObject.limit === 'number') {
-    query += ' LIMIT ?';
-    params.push(searchObject.limit);
-  }
-
-  if (typeof searchObject.offset === 'number') {
-    query += ' OFFSET ?';
-    params.push(searchObject.offset);
+  if (typeof searchObject.limit === 'number' || typeof searchObject.offset === 'number') {
+    query += ` LIMIT ${searchObject.limit || 10} OFFSET ${searchObject.offset || 0}`;
   }
 
   return { query, params };
@@ -72,9 +69,19 @@ function buildSearchQuery(searchObject: SearchObject) {
 function buildCountQuery(searchObject: SearchObject) {
   const params: (string | number)[] = [];
   let query = `
-    SELECT COUNT(DISTINCT company_id) as total
-    FROM v_company_tech
-    WHERE 1=1
+    WITH filtered_results AS (
+      SELECT DISTINCT
+        company_name,
+        root_domain,
+        company_category,
+        country,
+        company_spend as spend,
+        tech_name,
+        tech_category,
+        first_detected as first_indexed,
+        last_detected as last_indexed
+      FROM v_company_tech
+      WHERE 1=1
   `;
 
   if (searchObject.filters) {
@@ -83,6 +90,7 @@ function buildCountQuery(searchObject: SearchObject) {
     params.push(...whereParams);
   }
 
+  query += `) SELECT COUNT(*) as total FROM filtered_results`;
   return { query, params };
 }
 

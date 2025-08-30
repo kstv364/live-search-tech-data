@@ -1,33 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { SearchObject, FilterGroup, FilterCondition } from "@/lib/types";
-import { Button } from "@/components/ui/button";
+import React from "react";
+import { SearchObject, FilterGroup } from "@/lib/types";
 import FilterGroupComponent from "./FilterGroupComponent";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface FilterBuilderProps {
+  value: SearchObject;
   onChange: (filter: SearchObject) => void;
 }
 
-const FilterBuilder: React.FC<FilterBuilderProps> = ({ onChange }) => {
-  const [searchObject, setSearchObject] = useState<SearchObject>({
-    filters: {
-      operator: "AND",
-      conditions: [],
-    },
-  });
-
-  // Call onChange whenever searchObject changes
-  useEffect(() => {
-    onChange(searchObject);
-  }, [searchObject, onChange]);
-
+const FilterBuilder: React.FC<FilterBuilderProps> = ({ value, onChange }) => {
   const handleFilterGroupChange = (updatedFilterGroup: FilterGroup) => {
-    setSearchObject((prev) => ({
-      ...prev,
+    onChange({
+      ...value,
       filters: updatedFilterGroup
-    }));
+    });
   };
 
   return (
@@ -37,7 +25,7 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({ onChange }) => {
       </CardHeader>
       <CardContent>
         <FilterGroupComponent
-          filterGroup={searchObject.filters}
+          filterGroup={value.filters}
           onChange={handleFilterGroupChange}
         />
       </CardContent>
