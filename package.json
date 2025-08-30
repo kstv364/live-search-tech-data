@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_ENV=development npx next dev --turbopack",
-    "build": "NODE_ENV=production npx next build --turbopack",
-    "start": "NODE_ENV=production npx next start",
+    "dev": "cross-env NODE_ENV=development npx next dev --turbopack",
+    "build": "cross-env NODE_ENV=production npx next build --turbopack",
+    "start": "cross-env NODE_ENV=production npx next start",
     "lint": "biome check",
     "format": "biome format --write",
     "setup": "npx tsx src/setup.ts"
@@ -25,6 +25,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^10.0.0",
     "tailwindcss": "^4",
     "tsx": "^4.20.4",
     "typescript": "^5"
