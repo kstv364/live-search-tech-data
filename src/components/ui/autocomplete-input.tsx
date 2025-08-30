@@ -1,13 +1,22 @@
 "use client";
 
 import * as React from "react";
-import { Command as CommandPrimitive } from "cmdk";
-import { X } from "lucide-react";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface AutocompleteInputProps {
   field: string;
@@ -19,19 +28,20 @@ interface AutocompleteInputProps {
 export function AutocompleteInput({ field, value, onChange, onSelect }: AutocompleteInputProps) {
   const [open, setOpen] = React.useState(false);
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
-  const inputRef = React.useRef<React.ElementRef<typeof CommandPrimitive.Input>>(null);
+  const [inputValue, setInputValue] = React.useState(value);
 
   React.useEffect(() => {
     const fetchSuggestions = async () => {
-      if (!value) {
+      if (!inputValue) {
         setSuggestions([]);
         return;
       }
 
       try {
-        const response = await fetch(`/api/typeahead?field=${field}&q=${encodeURIComponent(value)}`);
+        const response = await fetch(`/api/typeahead?field=${field}&q=${encodeURIComponent(inputValue)}`);
         const data = await response.json();
         setSuggestions(data);
+        setOpen(true);
       } catch (error) {
         console.error("Failed to fetch suggestions:", error);
       }
@@ -39,32 +49,34 @@ export function AutocompleteInput({ field, value, onChange, onSelect }: Autocomp
 
     const debounceTimer = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(debounceTimer);
-  }, [value, field]);
+  }, [inputValue, field]);
 
   return (
-    <div className="relative">
-      <Command className="relative">
-        <div className="relative">
-          <CommandInput
-            ref={inputRef}
-            value={value}
-            onValueChange={(newValue) => {
-              onChange(newValue);
-              setOpen(true);
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <div className="flex items-center relative w-full">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => {
+              setInputValue(e.target.value);
+              onChange(e.target.value);
             }}
             onFocus={() => setOpen(true)}
-            className="h-10 pr-8 w-full"
+            className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             placeholder="Type to search..."
           />
           {value && (
             <Button
               variant="ghost"
               size="sm"
-              className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
-              onClick={() => {
+              className="absolute right-0 h-8 w-8 p-0 hover:bg-transparent"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setInputValue("");
                 onChange("");
                 setOpen(false);
-                inputRef.current?.focus();
               }}
             >
               <X className="h-4 w-4" />
@@ -72,27 +84,37 @@ export function AutocompleteInput({ field, value, onChange, onSelect }: Autocomp
             </Button>
           )}
         </div>
-        {open && suggestions.length > 0 && (
-          <div className="absolute top-[100%] z-50 w-full bg-white rounded-md border shadow-md mt-1">
-            <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
-              <CommandGroup>
-                {suggestions.map((suggestion) => (
-                  <CommandItem
-                    key={suggestion}
-                    onSelect={() => {
-                      onSelect(suggestion);
-                      setOpen(false);
-                    }}
-                  >
-                    {suggestion}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </div>
-        )}
-      </Command>
-    </div>
+      </PopoverTrigger>
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+        <Command className="w-full">
+          <CommandInput
+            value={inputValue}
+            onValueChange={(value) => {
+              setInputValue(value);
+              onChange(value);
+            }}
+            className="h-9"
+            placeholder="Type to search..."
+          />
+          <CommandEmpty className="py-2 px-4 text-sm text-muted-foreground">No results found.</CommandEmpty>
+          <CommandGroup>
+            {suggestions.map((suggestion) => (
+              <CommandItem
+                key={suggestion}
+                value={suggestion}
+                onSelect={() => {
+                  setInputValue(suggestion);
+                  onSelect(suggestion);
+                  setOpen(false);
+                }}
+                className="px-4 py-2 text-sm cursor-pointer"
+              >
+                {suggestion}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
