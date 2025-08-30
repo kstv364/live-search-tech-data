@@ -1,0 +1,6 @@
+-- database: ./builtwith.db
+
+SELECT DISTINCT c.root_domain, v.tech_name, v.last_detected
+FROM v_company_tech v
+JOIN company c ON c.id = v.company_id
+WHERE v.last_detected < DATE('now','-1 year');

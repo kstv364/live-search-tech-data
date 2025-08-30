@@ -1,0 +1,6 @@
+-- database: ./builtwith.db
+
+SELECT root_domain, name, category, country
+FROM company
+WHERE category = 'Travel'
+  AND country = 'GB';

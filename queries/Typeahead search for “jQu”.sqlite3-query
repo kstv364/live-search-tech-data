@@ -1,0 +1,6 @@
+-- database: ./builtwith.db
+
+SELECT name, category
+FROM technology_fts
+WHERE technology_fts MATCH 'jQu*'
+ORDER BY rank;

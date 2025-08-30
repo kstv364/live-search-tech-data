@@ -1,0 +1,6 @@
+-- database: ./builtwith.db
+
+SELECT c.id, c.root_domain
+FROM company_tech_rollup_stats r
+JOIN company c ON c.id=r.company_id
+WHERE r.parent_tech_id=(SELECT id FROM technology WHERE name='Shopify');

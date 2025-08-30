@@ -1,0 +1,8 @@
+-- database: ./builtwith.db
+
+SELECT DISTINCT c.root_domain, c.spend
+FROM v_company_tech v
+JOIN company c ON c.id = v.company_id
+JOIN technology t ON t.id = v.tech_id
+WHERE c.spend > 10000
+  AND t.premium = 'Yes';
