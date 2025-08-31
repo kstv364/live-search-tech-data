@@ -8,7 +8,8 @@ The BuiltWith Company Intelligence application is a powerful tool designed to he
 
 ## Application Screenshot
 
-<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/e644bf67-80fa-43e7-b38e-816c419474e6" />
+<img width="1920" height="913" alt="builtwith-app-screenshot" src="https://github.com/user-attachments/assets/b91632a3-c8eb-4776-99de-179b689734ca" />
+
 
 
 *The main interface showing the search filters, query preview, and results table with various technology and category options available.*
