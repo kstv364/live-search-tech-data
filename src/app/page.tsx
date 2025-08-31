@@ -186,7 +186,7 @@ export default function Home() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="bg-white border-b border-gray-200">
-          <div className="p-6">
+          <div className="p-6" style={{ paddingRight: 'calc(1.5rem + 17px)' }}>
             <div className="max-w-7xl mx-auto">
               {/* Main Header - Exactly aligned with filters below */}
               <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
