@@ -53,10 +53,18 @@ export function AutocompleteInput({
           `/api/typeahead?field=${field}&q=${encodeURIComponent(inputValue)}`
         );
         const data = await response.json();
-        setSuggestions(data);
+        
+        // Ensure data is an array
+        if (Array.isArray(data)) {
+          setSuggestions(data);
+        } else {
+          console.warn("Typeahead API returned non-array data:", data);
+          setSuggestions([]);
+        }
         setOpen(true);
       } catch (error) {
         console.error("Failed to fetch suggestions:", error);
+        setSuggestions([]);
       }
     };
 
@@ -134,7 +142,7 @@ export function AutocompleteInput({
           </CommandEmpty>
 
           <CommandGroup>
-            {suggestions.map((suggestion) => (
+            {Array.isArray(suggestions) && suggestions.map((suggestion) => (
               <CommandItem
                 key={suggestion}
                 value={suggestion}

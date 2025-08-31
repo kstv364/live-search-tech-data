@@ -110,14 +110,19 @@ const OPERATORS: Array<{ value: FilterCondition["operator"]; label: string }> = 
   { value: "BETWEEN", label: "between" },
 ];
 
-// Fields that should use typeahead
+// Fields that should use typeahead (all TEXT fields)
 const TYPEAHEAD_FIELDS: SearchField[] = [
   "company_name",
-  "root_domain",
+  "root_domain", 
+  "company_category",
+  "country",
+  "city",
+  "state",
+  "postal_code",
   "tech_name",
   "tech_category",
-  "company_category",
-  "country"
+  "parent_tech_name",
+  "description"
 ];
 
 // Fields that should use date input
