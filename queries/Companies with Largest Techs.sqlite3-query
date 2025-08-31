@@ -1,0 +1,8 @@
+-- database: ./builtwith.db
+
+SELECT c.root_domain, COUNT(DISTINCT v.tech_id) AS total_techs
+FROM v_company_tech v
+JOIN company c ON c.id = v.company_id
+GROUP BY c.id
+ORDER BY total_techs DESC
+LIMIT 20;

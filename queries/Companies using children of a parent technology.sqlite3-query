@@ -1,0 +1,8 @@
+-- database: ./builtwith.db
+
+
+SELECT c.root_domain, rs.child_count
+FROM company_tech_rollup_stats rs
+JOIN company c ON c.id = rs.company_id
+JOIN technology t ON t.id = rs.parent_tech_id
+WHERE t.name = 'Apache';

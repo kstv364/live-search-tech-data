@@ -1,0 +1,13 @@
+-- database: ./builtwith.db
+
+SELECT DISTINCT c.root_domain, c.name, c.country
+FROM v_company_tech v
+JOIN company c ON c.id = v.company_id
+WHERE v.tech_name IN ('Shopify','Stripe')
+  AND c.id NOT IN (
+    SELECT c2.id
+    FROM v_company_tech v2
+    JOIN company c2 ON c2.id = v2.company_id
+    WHERE v2.tech_name = 'Intercom'
+  );
+

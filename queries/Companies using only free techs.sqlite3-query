@@ -1,0 +1,10 @@
+-- database: ./builtwith.db
+
+SELECT c.root_domain
+FROM company c
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM v_company_tech v
+  JOIN technology t ON t.id = v.tech_id
+  WHERE v.company_id = c.id AND t.premium = 'Yes'
+);

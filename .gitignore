@@ -43,3 +43,8 @@ next-env.d.ts
 
 # Temp folder
 tmp/
+database/
+test-results/
+playwright-report/
+tests/screenshots/
+.playwright-mcp/

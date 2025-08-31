@@ -1,0 +1,8 @@
+-- database: ./builtwith.db
+
+SELECT c.root_domain, COUNT(DISTINCT v.tech_id) AS adtech_count
+FROM v_company_tech v
+JOIN company c ON c.id = v.company_id
+WHERE v.tech_category = 'Advertising'
+GROUP BY c.id
+HAVING COUNT(DISTINCT v.tech_id) >= 2;

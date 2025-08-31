@@ -1,0 +1,9 @@
+-- database: ./builtwith.db
+
+SELECT c.root_domain, COUNT(DISTINCT v.tech_category) AS categories_used
+FROM v_company_tech v
+JOIN company c ON c.id = v.company_id
+GROUP BY c.id
+ORDER BY categories_used DESC
+LIMIT 20;
+

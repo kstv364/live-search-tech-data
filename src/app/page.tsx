@@ -1,103 +1,507 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState, useEffect, useCallback } from "react";
+import { SearchObject, SortOption } from "@/lib/types";
+import FilterBuilder from "@/components/FilterBuilder";
+import SearchResults from "@/components/SearchResults";
+import QueryPreview from "@/components/QueryPreview";
+import SavedQueries from "@/components/SavedQueries";
+import { ExportDialog } from "@/components/ExportDialog";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { 
+  Users, 
+  UserX, 
+  Code, 
+  Download, 
+  Building, 
+  Mail, 
+  Inbox, 
+  Megaphone, 
+  MousePointer, 
+  Eye,
+  BarChart3,
+  Search,
+  Filter,
+  FileText,
+  ExternalLink
+} from "lucide-react";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [searchObject, setSearchObject] = useState<SearchObject>({
+    filters: {
+      operator: "AND",
+      conditions: [],
+    },
+    limit: 10,
+    offset: 0,
+  });
+  
+  // Reset offset when filters change
+  const handleFilterChange = useCallback((newSearchObject: SearchObject) => {
+    setSearchObject({
+      ...newSearchObject,
+      offset: 0 // Reset to first page when filters change
+    });
+    // Reset search state when filters change to avoid showing "no results" prematurely
+    if (JSON.stringify(newSearchObject.filters) !== JSON.stringify(searchObject.filters)) {
+      setHasPerformedSearch(false);
+      setResults([]);
+      setTotalResults(0);
+    }
+  }, [searchObject.filters]);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleClearFilters = useCallback(() => {
+    setSearchObject({
+      filters: {
+        operator: "AND",
+        conditions: [],
+      },
+      limit: 10,
+      offset: 0,
+    });
+    setResults([]);
+    setTotalResults(0);
+    setHasPerformedSearch(false);
+  }, []);
+  const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [totalResults, setTotalResults] = useState(0);
+  const [hasPerformedSearch, setHasPerformedSearch] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+
+  const search = useCallback(async (params: SearchObject) => {
+    setLoading(true);
+    setHasPerformedSearch(true);
+    try {
+      const response = await fetch("/api/search", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(params),
+      });
+      const data = await response.json();
+      if (data.error) {
+        console.error("Search error:", data.error);
+        setResults([]);
+        setTotalResults(0);
+      } else {
+        setResults(data.results || []);
+        setTotalResults(data.total || 0);
+      }
+    } catch (error) {
+      console.error("Search failed:", error);
+    }
+    setLoading(false);
+  }, []);
+
+  const handleSearch = useCallback(() => {
+    search(searchObject);
+  }, [search, searchObject]);
+
+  const handlePageChange = useCallback((newOffset: number) => {
+    const newSearchObject = {
+      ...searchObject,
+      offset: newOffset,
+    };
+    setSearchObject(newSearchObject);
+    search(newSearchObject);
+  }, [search, searchObject]);
+
+  const handleSortChange = useCallback((sort: SortOption[]) => {
+    const newSearchObject = {
+      ...searchObject,
+      sort,
+      offset: 0, // Reset to first page when sorting changes
+    };
+    setSearchObject(newSearchObject);
+    search(newSearchObject);
+  }, [search, searchObject]);
+
+  // Check if any filters are applied
+  const hasActiveFilters = searchObject.filters.conditions.length > 0;
+  
+  // Check if search has been performed AND we have results or performed search with no results
+  const hasSearchedWithNoResults = hasPerformedSearch && results.length === 0 && !loading;
+
+  const sidebarItems = [
+    { icon: Users, label: "Audiences", active: true },
+    { icon: UserX, label: "Exclusions" },
+    { icon: Code, label: "Advanced Scrapes" },
+    { icon: Download, label: "Exports" },
+    { icon: Building, label: "Organization" },
+    { icon: FileText, label: "API" },
+    { icon: BarChart3, label: "Usage" },
+  ];
+
+  const adminItems = [
+    { icon: Mail, label: "Email Dashboard" },
+    { icon: Inbox, label: "Inbox" },
+    { icon: Megaphone, label: "Campaigns" },
+    { icon: MousePointer, label: "Pixel Script" },
+    { icon: Eye, label: "Visitors" },
+    { icon: BarChart3, label: "Playbook" },
+  ];
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+        {/* Logo */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-purple-600 rounded flex items-center justify-center">
+              <span className="text-white font-bold text-sm">F</span>
+            </div>
+            <span className="font-semibold text-gray-900">fiber.ai</span>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-1">
+          {sidebarItems.map((item, index) => (
+            <div
+              key={index}
+              className={`flex items-center space-x-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
+                item.active
+                  ? "bg-purple-100 text-purple-700"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <item.icon className="w-5 h-5" />
+              <span className="text-sm font-medium">{item.label}</span>
+            </div>
+          ))}
+
+          {/* Admin Section */}
+          <div className="pt-6">
+            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+              Admin
+            </div>
+            {adminItems.map((item, index) => (
+              <div
+                key={index}
+                className="flex items-center space-x-3 px-3 py-2 rounded-lg cursor-pointer transition-colors text-gray-600 hover:bg-gray-100"
+              >
+                <item.icon className="w-5 h-5" />
+                <span className="text-sm font-medium">{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </nav>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="p-6" style={{ paddingRight: 'calc(1.5rem + 17px)' }}>
+            <div className="max-w-7xl mx-auto">
+              {/* Main Header - Exactly aligned with filters below */}
+              <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                <div className="xl:col-span-3">
+                  <Card className="p-6 shadow-sm border-gray-200">
+                    <div className="text-center">
+                      <div className="flex items-center justify-center space-x-3 mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                          <Building className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h1 className="text-3xl font-bold text-gray-900">BuiltWith Company Intelligence</h1>
+                          <p className="text-gray-600 font-medium">
+                            Search and discover companies using 35M+ technology profiles
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-6 shadow-sm">
+                        <p className="text-gray-700 leading-relaxed">
+                          Explore our comprehensive database of companies and their technology stacks. 
+                          Filter by technology names, categories, company details, and more to find your ideal prospects.
+                        </p>
+                      </div>
+
+                      {/* Status indicators */}
+                      <div className="flex items-center justify-center space-x-6 mt-4">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          <span className="text-sm text-gray-600 font-medium">Live Database</span>
+                        </div>
+                        {hasActiveFilters && (
+                          <div className="flex items-center space-x-2">
+                            <Filter className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm text-blue-700 font-medium">
+                              {searchObject.filters.conditions.length} filter{searchObject.filters.conditions.length !== 1 ? 's' : ''} applied
+                            </span>
+                          </div>
+                        )}
+                        {totalResults > 0 && (
+                          <div className="flex items-center space-x-2">
+                            <Search className="w-4 h-4 text-green-600" />
+                            <span className="text-sm text-green-700 font-medium">
+                              {totalResults.toLocaleString()} companies found
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+                
+                {/* Right Panel - Export Actions */}
+                <div className="xl:col-span-1">
+                  <Card className="p-6 shadow-sm border-gray-200 h-full">
+                    <div className="flex flex-col items-center justify-center h-full space-y-4">
+                      <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center">
+                        <Download className="w-6 h-6 text-green-600" />
+                      </div>
+                      <div className="text-center">
+                        <h3 className="font-semibold text-gray-900 mb-2">Export Results</h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                          Download your search results as CSV for further analysis
+                        </p>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setExportDialogOpen(true)}
+                        disabled={!hasActiveFilters || totalResults === 0}
+                        className="w-full bg-white hover:bg-gray-50 border-gray-300 hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow-md"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Export to CSV
+                      </Button>
+                      {totalResults > 0 && (
+                        <p className="text-xs text-gray-500 text-center">
+                          {totalResults.toLocaleString()} records available
+                        </p>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-auto">
+          <div className="p-6">
+            <div className="max-w-7xl mx-auto space-y-6">
+              {/* Filters Section - Horizontal Layout */}
+              <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                {/* Main Filters Panel */}
+                <div className="xl:col-span-3">
+                  <Card className="p-6 shadow-sm border-gray-200">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center space-x-2">
+                        <Filter className="w-5 h-5 text-gray-500" />
+                        <span className="font-semibold text-gray-900 text-lg">Search Filters</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button variant="ghost" size="sm" onClick={handleClearFilters} className="text-gray-600 hover:text-gray-900">
+                          Clear All
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={handleSearch} 
+                          disabled={loading || !hasActiveFilters}
+                          className={`transition-all duration-200 ${!hasActiveFilters ? "opacity-50" : "shadow-md hover:shadow-lg"}`}
+                        >
+                          <Search className="w-4 h-4 mr-2" />
+                          {loading ? "Searching..." : "Search"}
+                        </Button>
+                      </div>
+                    </div>
+
+                    <FilterBuilder
+                      value={searchObject}
+                      onChange={handleFilterChange}
+                      loading={loading}
+                    />
+
+                    <div className="mt-6 pt-4 border-t border-gray-200">
+                      {!hasActiveFilters ? (
+                        <div className="flex items-center text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                          <ExternalLink className="w-4 h-4 mr-2 flex-shrink-0" />
+                          <span>Add at least one filter above to start searching for companies!</span>
+                        </div>
+                      ) : !hasPerformedSearch ? (
+                        <div className="flex items-center text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <Search className="w-4 h-4 mr-2 flex-shrink-0" />
+                          <span>Filters applied! Click Search to find matching companies.</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg p-3">
+                          <Search className="w-4 h-4 mr-2 flex-shrink-0" />
+                          <span>Search completed. {results.length > 0 ? `Found ${totalResults} companies.` : 'No companies matched your criteria.'}</span>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+
+                {/* Right Panel - Query Preview */}
+                <div className="xl:col-span-1">
+                  <QueryPreview searchObject={searchObject} />
+                  <div className="mt-4">
+                    <SavedQueries
+                      onLoad={setSearchObject}
+                      currentQuery={searchObject}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Results Section - Aligned with Filters */}
+              <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                <div className="xl:col-span-3">
+                  <div className="bg-white rounded-lg border border-gray-200">
+                    <div className="px-6 py-4 border-b border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-6">
+                          <div className="flex items-center space-x-2">
+                            <Building className="w-5 h-5 text-gray-400" />
+                            <span className="text-sm font-medium text-gray-700">Company</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <BarChart3 className="w-5 h-5 text-gray-400" />
+                            <span className="text-sm font-medium text-gray-700">Industry</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <FileText className="w-5 h-5 text-gray-400" />
+                            <span className="text-sm font-medium text-gray-700">Description</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Building className="w-5 h-5 text-gray-400" />
+                            <span className="text-sm font-medium text-gray-700">Headquarters</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <ExternalLink className="w-5 h-5 text-gray-400" />
+                            <span className="text-sm font-medium text-gray-700">Social Links</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                
+                    {loading ? (
+                      <div className="p-12 text-center">
+                        <div className="text-gray-400 mb-2">
+                          <Search className="w-12 h-12 mx-auto mb-4 animate-spin" />
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          Searching Fiber's database...
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto">
+                          Please wait while we find companies matching your criteria.
+                        </p>
+                      </div>
+                    ) : results.length > 0 ? (
+                      <div className="overflow-hidden">
+                        <SearchResults
+                          results={results}
+                          loading={loading}
+                          totalResults={totalResults}
+                          currentOffset={searchObject.offset || 0}
+                          limit={searchObject.limit || 10}
+                          onPageChange={handlePageChange}
+                          onSortChange={handleSortChange}
+                          onExport={() => setExportDialogOpen(true)}
+                          currentSort={searchObject.sort}
+                        />
+                      </div>
+                    ) : hasSearchedWithNoResults ? (
+                      <div className="p-12 text-center">
+                        <div className="text-gray-400 mb-4">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                            <Search className="w-8 h-8 text-gray-400" />
+                          </div>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          No companies found
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto mb-4">
+                          We couldn't find any companies matching your current search criteria.
+                        </p>
+                        <div className="text-sm text-gray-600 space-y-2">
+                          <p>Try adjusting your filters by:</p>
+                          <ul className="list-disc list-inside space-y-1 text-left max-w-sm mx-auto">
+                            <li>Using broader technology names or categories</li>
+                            <li>Removing some filters to expand your search</li>
+                            <li>Checking for typos in your search terms</li>
+                          </ul>
+                        </div>
+                      </div>
+                    ) : !hasActiveFilters ? (
+                      <div className="p-12 text-center">
+                        <div className="text-purple-400 mb-4">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-purple-50 rounded-full flex items-center justify-center">
+                            <Filter className="w-8 h-8 text-purple-500" />
+                          </div>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          Ready to search 35M+ companies
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto mb-6">
+                          Add at least one filter to start discovering companies that match your criteria.
+                        </p>
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 max-w-lg mx-auto">
+                          <h4 className="font-medium text-purple-900 mb-2">Quick start:</h4>
+                          <div className="text-sm text-purple-700 space-y-1 text-left">
+                            <p>• Search by <strong>Technology Names</strong> (e.g., React, Salesforce, AWS)</p>
+                            <p>• Filter by <strong>Technology Categories</strong> (e.g., CRM, Analytics)</p>
+                            <p>• Use <strong>Advanced Filters</strong> for precise targeting</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : hasActiveFilters && !hasPerformedSearch ? (
+                      <div className="p-12 text-center">
+                        <div className="text-blue-400 mb-4">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-blue-50 rounded-full flex items-center justify-center">
+                            <Search className="w-8 h-8 text-blue-500" />
+                          </div>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          Ready to search with your filters
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto">
+                          You've applied filters. Click the <strong>Search</strong> button above to find companies matching your criteria.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="p-12 text-center">
+                        <div className="text-gray-400 mb-2">
+                          <Search className="w-12 h-12 mx-auto mb-4" />
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          Ready to search
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto">
+                          Click the Search button to find companies matching your filters.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Right column for results section */}
+                <div className="xl:col-span-1">
+                  {/* This space can be used for result summaries, export options, etc. */}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Export Dialog */}
+      <ExportDialog
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        searchObject={searchObject}
+        totalResults={totalResults}
+      />
     </div>
   );
 }

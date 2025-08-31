@@ -1,0 +1,8 @@
+-- database: ./builtwith.db
+
+SELECT v.tech_category, COUNT(DISTINCT c.id) AS company_count
+FROM v_company_tech v
+JOIN company c ON c.id = v.company_id
+WHERE c.country = 'GB'
+GROUP BY v.tech_category
+ORDER BY company_count DESC;
