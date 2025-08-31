@@ -43,7 +43,6 @@ next-env.d.ts
 
 # Temp folder
 tmp/
-data_model/
 database/
 test-results/
 playwright-report/
