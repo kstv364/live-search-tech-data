@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { FilterCondition, SearchField } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { AutocompleteInput } from "@/components/ui/autocomplete-input";
+import { MultiValueInput } from "@/components/ui/multi-value-input";
 
 interface FilterConditionComponentProps {
   filterCondition: FilterCondition;
