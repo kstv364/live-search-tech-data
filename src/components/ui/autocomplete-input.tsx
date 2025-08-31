@@ -35,7 +35,11 @@ export function AutocompleteInput({
   const [internalOpen, setInternalOpen] = React.useState(false);
   const setOpen = externalSetOpen || setInternalOpen; // use parent if passed
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
-  const [inputValue, setInputValue] = React.useState(value);
+  const [inputValue, setInputValue] = React.useState(String(value || ''));
+
+  React.useEffect(() => {
+    setInputValue(String(value || ''));
+  }, [value]);
 
   React.useEffect(() => {
     const fetchSuggestions = async () => {

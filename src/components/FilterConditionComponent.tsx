@@ -84,11 +84,13 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
 
   const renderValueInput = () => {
     if (TYPEAHEAD_FIELDS.includes(filterCondition.field)) {
-      // Wrap AutocompleteInput in a Popover to ensure dropdown is clickable
+      // Ensure value is always a string for AutocompleteInput
+      const stringValue = typeof filterCondition.value === 'string' ? filterCondition.value : '';
+      
       const Autocomplete = (
         <AutocompleteInput
           field={filterCondition.field}
-          value={filterCondition.value as string}
+          value={stringValue}
           onChange={handleValueChange}
           onSelect={(val) => {
             handleValueChange(val);
@@ -100,30 +102,38 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
     }
 
     if (DATE_FIELDS.includes(filterCondition.field)) {
+      const stringValue = typeof filterCondition.value === 'string' ? filterCondition.value : '';
       return (
         <Input
           type="date"
-          value={filterCondition.value as string}
+          value={stringValue}
           onChange={(e) => handleValueChange(e.target.value)}
         />
       );
     }
 
     if (NUMBER_FIELDS.includes(filterCondition.field)) {
+      const numberValue = typeof filterCondition.value === 'number' ? filterCondition.value : 0;
       return (
         <Input
           type="number"
-          value={filterCondition.value as number}
+          value={numberValue}
           onChange={(e) => handleValueChange(Number(e.target.value))}
         />
       );
     }
 
     if (["IN", "NOT IN"].includes(filterCondition.operator)) {
+      const displayValue = Array.isArray(filterCondition.value) 
+        ? filterCondition.value.join(", ") 
+        : typeof filterCondition.value === 'string' 
+          ? filterCondition.value 
+          : String(filterCondition.value);
+      
       return (
         <Input
           placeholder="Comma-separated values"
-          value={Array.isArray(filterCondition.value) ? filterCondition.value.join(", ") : filterCondition.value as string}
+          value={displayValue}
           onChange={(e) => handleValueChange(e.target.value.split(",").map(v => v.trim()))}
         />
       );
@@ -147,10 +157,11 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
       );
     }
 
+    const stringValue = typeof filterCondition.value === 'string' ? filterCondition.value : String(filterCondition.value || '');
     return (
       <Input
         type="text"
-        value={filterCondition.value as string}
+        value={stringValue}
         onChange={(e) => handleValueChange(e.target.value)}
       />
     );

@@ -12,6 +12,7 @@ interface MultiValueFilterSectionProps {
   field: SearchField;
   useTypeahead?: boolean;
   placeholder?: string;
+  onChange?: (filters: FilterOption[]) => void;
 }
 
 interface FilterOption {
@@ -26,6 +27,7 @@ export const MultiValueFilterSection: React.FC<MultiValueFilterSectionProps> = (
   field,
   useTypeahead = false,
   placeholder = "Add value...",
+  onChange,
 }) => {
   const [filters, setFilters] = useState<FilterOption[]>([
     { id: "contains_any", type: "ANY_OF", values: [], enabled: false },
@@ -34,15 +36,19 @@ export const MultiValueFilterSection: React.FC<MultiValueFilterSectionProps> = (
   ]);
 
   const updateFilter = (id: string, updates: Partial<FilterOption>) => {
-    setFilters(prev => prev.map(filter => 
+    const newFilters = filters.map(filter => 
       filter.id === id ? { ...filter, ...updates } : filter
-    ));
+    );
+    setFilters(newFilters);
+    onChange?.(newFilters);
   };
 
   const toggleFilter = (id: string) => {
-    setFilters(prev => prev.map(filter => 
+    const newFilters = filters.map(filter => 
       filter.id === id ? { ...filter, enabled: !filter.enabled } : filter
-    ));
+    );
+    setFilters(newFilters);
+    onChange?.(newFilters);
   };
 
   const getFilterLabel = (type: FilterOption["type"]) => {
@@ -101,22 +107,27 @@ export const MultiValueFilterSection: React.FC<MultiValueFilterSectionProps> = (
               onClick={() => {
                 // Add to the first enabled filter, or enable "Contains Any" if none are enabled
                 const enabledFilter = filters.find(f => f.enabled);
+                let newFilters;
                 if (enabledFilter) {
                   if (!enabledFilter.values.includes(suggestion)) {
-                    updateFilter(enabledFilter.id, { 
-                      values: [...enabledFilter.values, suggestion] 
-                    });
+                    newFilters = filters.map(filter => 
+                      filter.id === enabledFilter.id 
+                        ? { ...filter, values: [...filter.values, suggestion] }
+                        : filter
+                    );
+                  } else {
+                    newFilters = filters;
                   }
                 } else {
                   // Enable "Contains Any" and add the suggestion
-                  const anyOfFilter = filters.find(f => f.type === "ANY_OF");
-                  if (anyOfFilter) {
-                    updateFilter(anyOfFilter.id, { 
-                      enabled: true, 
-                      values: [suggestion] 
-                    });
-                  }
+                  newFilters = filters.map(filter => 
+                    filter.type === "ANY_OF" 
+                      ? { ...filter, enabled: true, values: [suggestion] }
+                      : filter
+                  );
                 }
+                setFilters(newFilters);
+                onChange?.(newFilters);
               }}
             >
               {suggestion} <Plus className="w-3 h-3 ml-1" />
