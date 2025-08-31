@@ -85,16 +85,16 @@ export function AutocompleteInput({
             }}
             onFocus={() => setOpen(true)}
             onClick={(e) => e.stopPropagation()} 
-            className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             placeholder="Type to search..."
           />
           {value && (
-            <div className="absolute right-0">
+            <div className="absolute right-1">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 hover:bg-transparent"
+                className="h-6 w-6 p-0 hover:bg-transparent"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -103,7 +103,7 @@ export function AutocompleteInput({
                   setOpen(false);
                 }}
               >
-                <X className="h-4 w-4" />
+                <X className="h-3 w-3" />
                 <span className="sr-only">Clear</span>
               </Button>
             </div>
@@ -112,9 +112,10 @@ export function AutocompleteInput({
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-[var(--radix-popover-trigger-width)] p-0"
+        className="w-[var(--radix-popover-trigger-width)] p-0 z-50"
         align="start"
         sideOffset={4}
+        side="bottom"
         style={{ pointerEvents: "auto" }}
         data-autocomplete="true"
         onClick={(e) => {
@@ -134,7 +135,7 @@ export function AutocompleteInput({
               setInputValue(val);
               onChange(val);
             }}
-            className="h-9"
+            className="h-8 text-xs"
             placeholder="Type to search..."
           />
           <CommandEmpty className="py-2 px-4 text-sm text-muted-foreground">

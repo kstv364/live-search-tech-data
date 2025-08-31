@@ -164,12 +164,12 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
           value={typeof filterCondition.value === 'string' ? filterCondition.value : ''} 
           onValueChange={handleValueChange}
         >
-          <SelectTrigger className="w-[120px]">
+          <SelectTrigger className="h-8 text-xs">
             <SelectValue placeholder="Select..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Yes">Yes (Premium)</SelectItem>
-            <SelectItem value="No">No (Free)</SelectItem>
+            <SelectItem value="Yes" className="text-xs">Yes (Premium)</SelectItem>
+            <SelectItem value="No" className="text-xs">No (Free)</SelectItem>
           </SelectContent>
         </Select>
       );
@@ -197,18 +197,20 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
       if (filterCondition.operator === "BETWEEN") {
         const [start, end] = Array.isArray(filterCondition.value) ? filterCondition.value : [filterCondition.value, ""];
         return (
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
               type="date"
               placeholder="Start date"
               value={start}
               onChange={(e) => handleValueChange([e.target.value, end])}
+              className="h-8 text-xs"
             />
             <Input
               type="date"
               placeholder="End date"
               value={end}
               onChange={(e) => handleValueChange([start, e.target.value])}
+              className="h-8 text-xs"
             />
           </div>
         );
@@ -221,6 +223,7 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
           value={stringValue}
           placeholder="Select date"
           onChange={(e) => handleValueChange(e.target.value)}
+          className="h-8 text-xs"
         />
       );
     }
@@ -230,18 +233,20 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
         const [start, end] = Array.isArray(filterCondition.value) ? filterCondition.value : [filterCondition.value, ""];
         const isSpendField = filterCondition.field === "spend";
         return (
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
               type="number"
-              placeholder={isSpendField ? "Min amount ($)" : "Minimum"}
+              placeholder={isSpendField ? "Min ($)" : "Min"}
               value={start}
               onChange={(e) => handleValueChange([Number(e.target.value), end])}
+              className="h-8 text-xs"
             />
             <Input
               type="number"
-              placeholder={isSpendField ? "Max amount ($)" : "Maximum"}
+              placeholder={isSpendField ? "Max ($)" : "Max"}
               value={end}
               onChange={(e) => handleValueChange([start, Number(e.target.value)])}
+              className="h-8 text-xs"
             />
           </div>
         );
@@ -257,9 +262,10 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
         const isSpendField = filterCondition.field === "spend";
         return (
           <Input
-            placeholder={isSpendField ? "e.g., 1000, 5000, 10000" : "e.g., 1, 2, 3"}
+            placeholder={isSpendField ? "e.g., 1000, 5000" : "e.g., 1, 2, 3"}
             value={displayValue}
             onChange={(e) => handleValueChange(e.target.value.split(",").map(v => Number(v.trim())).filter(n => !isNaN(n)))}
+            className="h-8 text-xs"
           />
         );
       }
@@ -269,9 +275,10 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
       return (
         <Input
           type="number"
-          placeholder={isSpendField ? "Amount in USD" : "Enter number"}
+          placeholder={isSpendField ? "Amount ($)" : "Number"}
           value={numberValue}
           onChange={(e) => handleValueChange(Number(e.target.value))}
+          className="h-8 text-xs"
         />
       );
     }
@@ -285,9 +292,10 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
       
       return (
         <Input
-          placeholder="Separate multiple values with commas"
+          placeholder="Multiple values (comma separated)"
           value={displayValue}
           onChange={(e) => handleValueChange(e.target.value.split(",").map(v => v.trim()))}
+          className="h-8 text-xs"
         />
       );
     }
@@ -295,16 +303,18 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
     if (filterCondition.operator === "BETWEEN") {
       const [start, end] = Array.isArray(filterCondition.value) ? filterCondition.value : [filterCondition.value, ""];
       return (
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Input
-            placeholder="Start value"
+            placeholder="Start"
             value={start}
             onChange={(e) => handleValueChange([e.target.value, end])}
+            className="h-8 text-xs"
           />
           <Input
-            placeholder="End value"
+            placeholder="End"
             value={end}
             onChange={(e) => handleValueChange([start, e.target.value])}
+            className="h-8 text-xs"
           />
         </div>
       );
@@ -314,11 +324,11 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
     
     // Get appropriate placeholder based on field
     let placeholder = "Enter value";
-    if (filterCondition.field === "company_name") placeholder = "e.g., Google, Microsoft";
+    if (filterCondition.field === "company_name") placeholder = "e.g., Google";
     else if (filterCondition.field === "root_domain") placeholder = "e.g., google.com";
-    else if (filterCondition.field === "tech_name") placeholder = "e.g., React, jQuery";
-    else if (filterCondition.field === "description") placeholder = "Search in technology description";
-    else if (filterCondition.operator === "LIKE") placeholder = "Enter text to search";
+    else if (filterCondition.field === "tech_name") placeholder = "e.g., React";
+    else if (filterCondition.field === "description") placeholder = "Search description";
+    else if (filterCondition.operator === "LIKE") placeholder = "Search text";
     
     return (
       <Input
@@ -326,6 +336,7 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
         placeholder={placeholder}
         value={stringValue}
         onChange={(e) => handleValueChange(e.target.value)}
+        className="h-8 text-xs"
       />
     );
   };
@@ -334,41 +345,47 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
   const availableOperators = getOperatorsForField(filterCondition.field);
 
   return (
-    <div className="flex items-center gap-2 bg-muted/50 p-2 rounded-md">
-      <Select value={filterCondition.field} onValueChange={handleFieldChange}>
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Select field" />
-        </SelectTrigger>
-        <SelectContent>
-          <div className="text-xs font-medium text-muted-foreground px-2 py-1">Company Fields</div>
-          {FIELDS.filter(field => field.category === "Company").map(field => (
-            <SelectItem key={field.value} value={field.value}>
-              {field.label}
-            </SelectItem>
-          ))}
-          <div className="text-xs font-medium text-muted-foreground px-2 py-1 border-t mt-1 pt-1">Technology Fields</div>
-          {FIELDS.filter(field => field.category === "Technology").map(field => (
-            <SelectItem key={field.value} value={field.value}>
-              {field.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="flex flex-col gap-2 bg-muted/50 p-2 rounded-md text-sm">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+        <div className="w-full sm:w-auto sm:min-w-[140px] sm:max-w-[160px]">
+          <Select value={filterCondition.field} onValueChange={handleFieldChange}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue placeholder="Select field" />
+            </SelectTrigger>
+            <SelectContent>
+              <div className="text-xs font-medium text-muted-foreground px-2 py-1">Company Fields</div>
+              {FIELDS.filter(field => field.category === "Company").map(field => (
+                <SelectItem key={field.value} value={field.value} className="text-xs">
+                  {field.label}
+                </SelectItem>
+              ))}
+              <div className="text-xs font-medium text-muted-foreground px-2 py-1 border-t mt-1 pt-1">Technology Fields</div>
+              {FIELDS.filter(field => field.category === "Technology").map(field => (
+                <SelectItem key={field.value} value={field.value} className="text-xs">
+                  {field.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-      <Select value={filterCondition.operator} onValueChange={handleOperatorChange}>
-        <SelectTrigger className="w-[140px]">
-          <SelectValue placeholder="Select operator" />
-        </SelectTrigger>
-        <SelectContent>
-          {availableOperators.map(op => (
-            <SelectItem key={op.value} value={op.value}>
-              {op.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        <div className="w-full sm:w-auto sm:min-w-[100px] sm:max-w-[120px]">
+          <Select value={filterCondition.operator} onValueChange={handleOperatorChange}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue placeholder="Select operator" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableOperators.map(op => (
+                <SelectItem key={op.value} value={op.value} className="text-xs">
+                  {op.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
-      <div className="flex-1">
+      <div className="w-full relative z-10">
         {renderValueInput()}
       </div>
     </div>

@@ -58,40 +58,40 @@ const FilterGroupComponent: React.FC<FilterGroupComponentProps> = ({
   }, [filterGroup, onChange]);
 
   return (
-    <Card className={`p-4 ${depth > 0 ? 'mt-2' : ''}`}>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
+    <Card className={`p-3 ${depth > 0 ? 'mt-2' : ''}`}>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
           <Select 
             defaultValue={filterGroup.operator} 
             onValueChange={handleOperatorChange}
           >
-            <SelectTrigger className="w-[100px]">
+            <SelectTrigger className="w-[80px] h-8 text-xs">
               <SelectValue>
                 {filterGroup.operator}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="AND">AND</SelectItem>
-              <SelectItem value="OR">OR</SelectItem>
-              <SelectItem value="NOT">NOT</SelectItem>
+              <SelectItem value="AND" className="text-xs">AND</SelectItem>
+              <SelectItem value="OR" className="text-xs">OR</SelectItem>
+              <SelectItem value="NOT" className="text-xs">NOT</SelectItem>
             </SelectContent>
           </Select>
           <div className="flex gap-2 flex-wrap">
-            <Button onClick={handleAddCondition} variant="outline" size="sm" className="flex-shrink-0">
-              <Plus className="h-4 w-4 mr-1" />
+            <Button onClick={handleAddCondition} variant="outline" size="sm" className="flex-shrink-0 h-8 text-xs px-2">
+              <Plus className="h-3 w-3 mr-1" />
               Add Condition
             </Button>
             {depth < 2 && (
-              <Button onClick={handleAddGroup} variant="outline" size="sm" className="flex-shrink-0">
-                <Plus className="h-4 w-4 mr-1" />
+              <Button onClick={handleAddGroup} variant="outline" size="sm" className="flex-shrink-0 h-8 text-xs px-2">
+                <Plus className="h-3 w-3 mr-1" />
                 Add Group
               </Button>
             )}
           </div>
         </div>
         {onRemove && (
-          <Button onClick={onRemove} variant="ghost" size="icon">
-            <X className="h-4 w-4" />
+          <Button onClick={onRemove} variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+            <X className="h-3 w-3" />
           </Button>
         )}
       </div>
@@ -111,18 +111,21 @@ const FilterGroupComponent: React.FC<FilterGroupComponentProps> = ({
 
             ) : (
               // This is a filter condition
-              <div className="flex items-center gap-2">
-                <FilterConditionComponent
-                  filterCondition={condition as FilterCondition}
-                  onChange={(updated) => handleConditionChange(index, updated)}
-                  setOpen={setOpen}
-                />
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                <div className="w-full sm:flex-1">
+                  <FilterConditionComponent
+                    filterCondition={condition as FilterCondition}
+                    onChange={(updated) => handleConditionChange(index, updated)}
+                    setOpen={setOpen}
+                  />
+                </div>
                 <Button 
                   onClick={() => handleRemoveCondition(index)}
                   variant="ghost"
                   size="icon"
+                  className="h-8 w-8 flex-shrink-0 mt-1 sm:mt-0"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3 w-3" />
                 </Button>
               </div>
             )}

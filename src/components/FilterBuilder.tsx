@@ -221,7 +221,7 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({ value, onChange, loading 
                       </div>
                     </div>
                     
-                    <div className="bg-white rounded-lg border border-purple-200 p-4 overflow-hidden">
+                    <div className="bg-white rounded-lg border border-purple-200 p-4 overflow-visible">
                       <div className="space-y-4">
                         <FilterGroupComponent
                           filterGroup={value.filters}
