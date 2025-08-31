@@ -46,5 +46,4 @@ export type SearchField =
   | "tech_category"
   | "parent_tech_name"
   | "premium"
-  | "description"
-  | "tech_count_in_category";
+  | "description";
