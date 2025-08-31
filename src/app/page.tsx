@@ -24,7 +24,6 @@ import {
   Search,
   Filter,
   FileText,
-  Copy,
   ExternalLink
 } from "lucide-react";
 
@@ -186,237 +185,299 @@ export default function Home() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">1. Choose companies to target</h1>
-              <p className="text-sm text-gray-500 mt-1">
-                fiber ai test audience → Add filters to find the right companies.
-              </p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setExportDialogOpen(true)}
-                disabled={!hasActiveFilters || totalResults === 0}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Export CSV
-              </Button>
-              <Button variant="outline" size="sm">
-                <Eye className="w-4 h-4 mr-2" />
-                View
-              </Button>
-              <Button variant="outline" size="sm">
-                <Copy className="w-4 h-4 mr-2" />
-                Copy Filters
-              </Button>
+        <div className="bg-white border-b border-gray-200">
+          <div className="p-6">
+            <div className="max-w-7xl mx-auto">
+              {/* Main Header - Exactly aligned with filters below */}
+              <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                <div className="xl:col-span-3">
+                  <Card className="p-6 shadow-sm border-gray-200">
+                    <div className="text-center">
+                      <div className="flex items-center justify-center space-x-3 mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                          <Building className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h1 className="text-3xl font-bold text-gray-900">BuiltWith Company Intelligence</h1>
+                          <p className="text-gray-600 font-medium">
+                            Search and discover companies using 35M+ technology profiles
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-6 shadow-sm">
+                        <p className="text-gray-700 leading-relaxed">
+                          Explore our comprehensive database of companies and their technology stacks. 
+                          Filter by technology names, categories, company details, and more to find your ideal prospects.
+                        </p>
+                      </div>
+
+                      {/* Status indicators */}
+                      <div className="flex items-center justify-center space-x-6 mt-4">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          <span className="text-sm text-gray-600 font-medium">Live Database</span>
+                        </div>
+                        {hasActiveFilters && (
+                          <div className="flex items-center space-x-2">
+                            <Filter className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm text-blue-700 font-medium">
+                              {searchObject.filters.conditions.length} filter{searchObject.filters.conditions.length !== 1 ? 's' : ''} applied
+                            </span>
+                          </div>
+                        )}
+                        {totalResults > 0 && (
+                          <div className="flex items-center space-x-2">
+                            <Search className="w-4 h-4 text-green-600" />
+                            <span className="text-sm text-green-700 font-medium">
+                              {totalResults.toLocaleString()} companies found
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+                
+                {/* Right Panel - Export Actions */}
+                <div className="xl:col-span-1">
+                  <Card className="p-6 shadow-sm border-gray-200 h-full">
+                    <div className="flex flex-col items-center justify-center h-full space-y-4">
+                      <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center">
+                        <Download className="w-6 h-6 text-green-600" />
+                      </div>
+                      <div className="text-center">
+                        <h3 className="font-semibold text-gray-900 mb-2">Export Results</h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                          Download your search results as CSV for further analysis
+                        </p>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setExportDialogOpen(true)}
+                        disabled={!hasActiveFilters || totalResults === 0}
+                        className="w-full bg-white hover:bg-gray-50 border-gray-300 hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow-md"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Export to CSV
+                      </Button>
+                      {totalResults > 0 && (
+                        <p className="text-xs text-gray-500 text-center">
+                          {totalResults.toLocaleString()} records available
+                        </p>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto">
-          <div className="p-6 space-y-6">
-            {/* Filters Section - Horizontal Layout */}
-            <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-              {/* Main Filters Panel */}
-              <div className="xl:col-span-3">
-                <Card className="p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center space-x-2">
-                      <Filter className="w-5 h-5 text-gray-500" />
-                      <span className="font-medium text-gray-900">Filters</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button variant="ghost" size="sm" onClick={handleClearFilters}>
-                        Clear
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        onClick={handleSearch} 
-                        disabled={loading || !hasActiveFilters}
-                        className={!hasActiveFilters ? "opacity-50" : ""}
-                      >
-                        <Search className="w-4 h-4 mr-2" />
-                        {loading ? "Searching..." : "Search"}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <FilterBuilder
-                    value={searchObject}
-                    onChange={handleFilterChange}
-                    loading={loading}
-                  />
-
-                  <div className="mt-6 pt-4 border-t border-gray-200">
-                    {!hasActiveFilters ? (
-                      <div className="flex items-center text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                        <ExternalLink className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span>Add at least one filter above to start searching for companies!</span>
+          <div className="p-6">
+            <div className="max-w-7xl mx-auto space-y-6">
+              {/* Filters Section - Horizontal Layout */}
+              <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                {/* Main Filters Panel */}
+                <div className="xl:col-span-3">
+                  <Card className="p-6 shadow-sm border-gray-200">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center space-x-2">
+                        <Filter className="w-5 h-5 text-gray-500" />
+                        <span className="font-semibold text-gray-900 text-lg">Search Filters</span>
                       </div>
-                    ) : !hasPerformedSearch ? (
-                      <div className="flex items-center text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <Search className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span>Filters applied! Click Search to find matching companies.</span>
+                      <div className="flex items-center space-x-2">
+                        <Button variant="ghost" size="sm" onClick={handleClearFilters} className="text-gray-600 hover:text-gray-900">
+                          Clear All
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={handleSearch} 
+                          disabled={loading || !hasActiveFilters}
+                          className={`transition-all duration-200 ${!hasActiveFilters ? "opacity-50" : "shadow-md hover:shadow-lg"}`}
+                        >
+                          <Search className="w-4 h-4 mr-2" />
+                          {loading ? "Searching..." : "Search"}
+                        </Button>
+                      </div>
+                    </div>
+
+                    <FilterBuilder
+                      value={searchObject}
+                      onChange={handleFilterChange}
+                      loading={loading}
+                    />
+
+                    <div className="mt-6 pt-4 border-t border-gray-200">
+                      {!hasActiveFilters ? (
+                        <div className="flex items-center text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                          <ExternalLink className="w-4 h-4 mr-2 flex-shrink-0" />
+                          <span>Add at least one filter above to start searching for companies!</span>
+                        </div>
+                      ) : !hasPerformedSearch ? (
+                        <div className="flex items-center text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <Search className="w-4 h-4 mr-2 flex-shrink-0" />
+                          <span>Filters applied! Click Search to find matching companies.</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg p-3">
+                          <Search className="w-4 h-4 mr-2 flex-shrink-0" />
+                          <span>Search completed. {results.length > 0 ? `Found ${totalResults} companies.` : 'No companies matched your criteria.'}</span>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+
+                {/* Right Panel - Query Preview */}
+                <div className="xl:col-span-1">
+                  <QueryPreview searchObject={searchObject} />
+                  <div className="mt-4">
+                    <SavedQueries
+                      onLoad={setSearchObject}
+                      currentQuery={searchObject}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Results Section - Aligned with Filters */}
+              <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                <div className="xl:col-span-3">
+                  <div className="bg-white rounded-lg border border-gray-200">
+                    <div className="px-6 py-4 border-b border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-6">
+                          <div className="flex items-center space-x-2">
+                            <Building className="w-5 h-5 text-gray-400" />
+                            <span className="text-sm font-medium text-gray-700">Company</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <BarChart3 className="w-5 h-5 text-gray-400" />
+                            <span className="text-sm font-medium text-gray-700">Industry</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <FileText className="w-5 h-5 text-gray-400" />
+                            <span className="text-sm font-medium text-gray-700">Description</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Building className="w-5 h-5 text-gray-400" />
+                            <span className="text-sm font-medium text-gray-700">Headquarters</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <ExternalLink className="w-5 h-5 text-gray-400" />
+                            <span className="text-sm font-medium text-gray-700">Social Links</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                
+                    {loading ? (
+                      <div className="p-12 text-center">
+                        <div className="text-gray-400 mb-2">
+                          <Search className="w-12 h-12 mx-auto mb-4 animate-spin" />
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          Searching Fiber's database...
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto">
+                          Please wait while we find companies matching your criteria.
+                        </p>
+                      </div>
+                    ) : results.length > 0 ? (
+                      <div className="overflow-hidden">
+                        <SearchResults
+                          results={results}
+                          loading={loading}
+                          totalResults={totalResults}
+                          currentOffset={searchObject.offset || 0}
+                          limit={searchObject.limit || 10}
+                          onPageChange={handlePageChange}
+                          onSortChange={(sort) => setSearchObject(prev => ({ ...prev, sort }))}
+                          onExport={() => setExportDialogOpen(true)}
+                        />
+                      </div>
+                    ) : hasSearchedWithNoResults ? (
+                      <div className="p-12 text-center">
+                        <div className="text-gray-400 mb-4">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                            <Search className="w-8 h-8 text-gray-400" />
+                          </div>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          No companies found
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto mb-4">
+                          We couldn't find any companies matching your current search criteria.
+                        </p>
+                        <div className="text-sm text-gray-600 space-y-2">
+                          <p>Try adjusting your filters by:</p>
+                          <ul className="list-disc list-inside space-y-1 text-left max-w-sm mx-auto">
+                            <li>Using broader technology names or categories</li>
+                            <li>Removing some filters to expand your search</li>
+                            <li>Checking for typos in your search terms</li>
+                          </ul>
+                        </div>
+                      </div>
+                    ) : !hasActiveFilters ? (
+                      <div className="p-12 text-center">
+                        <div className="text-purple-400 mb-4">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-purple-50 rounded-full flex items-center justify-center">
+                            <Filter className="w-8 h-8 text-purple-500" />
+                          </div>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          Ready to search 35M+ companies
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto mb-6">
+                          Add at least one filter to start discovering companies that match your criteria.
+                        </p>
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 max-w-lg mx-auto">
+                          <h4 className="font-medium text-purple-900 mb-2">Quick start:</h4>
+                          <div className="text-sm text-purple-700 space-y-1 text-left">
+                            <p>• Search by <strong>Technology Names</strong> (e.g., React, Salesforce, AWS)</p>
+                            <p>• Filter by <strong>Technology Categories</strong> (e.g., CRM, Analytics)</p>
+                            <p>• Use <strong>Advanced Filters</strong> for precise targeting</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : hasActiveFilters && !hasPerformedSearch ? (
+                      <div className="p-12 text-center">
+                        <div className="text-blue-400 mb-4">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-blue-50 rounded-full flex items-center justify-center">
+                            <Search className="w-8 h-8 text-blue-500" />
+                          </div>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          Ready to search with your filters
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto">
+                          You've applied filters. Click the <strong>Search</strong> button above to find companies matching your criteria.
+                        </p>
                       </div>
                     ) : (
-                      <div className="flex items-center text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg p-3">
-                        <Search className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span>Search completed. {results.length > 0 ? `Found ${totalResults} companies.` : 'No companies matched your criteria.'}</span>
+                      <div className="p-12 text-center">
+                        <div className="text-gray-400 mb-2">
+                          <Search className="w-12 h-12 mx-auto mb-4" />
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          Ready to search
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto">
+                          Click the Search button to find companies matching your filters.
+                        </p>
                       </div>
                     )}
                   </div>
-                </Card>
-              </div>
-
-              {/* Right Panel - Query Preview */}
-              <div className="xl:col-span-1">
-                <QueryPreview searchObject={searchObject} />
-                <div className="mt-4">
-                  <SavedQueries
-                    onLoad={setSearchObject}
-                    currentQuery={searchObject}
-                  />
                 </div>
-              </div>
-            </div>
-
-            {/* Results Section - Aligned with Filters */}
-            <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-              <div className="xl:col-span-3">
-                <div className="bg-white rounded-lg border border-gray-200">
-                  <div className="px-6 py-4 border-b border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-6">
-                        <div className="flex items-center space-x-2">
-                          <Building className="w-5 h-5 text-gray-400" />
-                          <span className="text-sm font-medium text-gray-700">Company</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <BarChart3 className="w-5 h-5 text-gray-400" />
-                          <span className="text-sm font-medium text-gray-700">Industry</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <FileText className="w-5 h-5 text-gray-400" />
-                          <span className="text-sm font-medium text-gray-700">Description</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Building className="w-5 h-5 text-gray-400" />
-                          <span className="text-sm font-medium text-gray-700">Headquarters</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <ExternalLink className="w-5 h-5 text-gray-400" />
-                          <span className="text-sm font-medium text-gray-700">Social Links</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 
-                {loading ? (
-                  <div className="p-12 text-center">
-                    <div className="text-gray-400 mb-2">
-                      <Search className="w-12 h-12 mx-auto mb-4 animate-spin" />
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      Searching Fiber's database...
-                    </h3>
-                    <p className="text-gray-500 max-w-md mx-auto">
-                      Please wait while we find companies matching your criteria.
-                    </p>
-                  </div>
-                ) : results.length > 0 ? (
-                  <div className="overflow-hidden">
-                    <SearchResults
-                      results={results}
-                      loading={loading}
-                      totalResults={totalResults}
-                      currentOffset={searchObject.offset || 0}
-                      limit={searchObject.limit || 10}
-                      onPageChange={handlePageChange}
-                      onSortChange={(sort) => setSearchObject(prev => ({ ...prev, sort }))}
-                      onExport={() => setExportDialogOpen(true)}
-                    />
-                  </div>
-                ) : hasSearchedWithNoResults ? (
-                  <div className="p-12 text-center">
-                    <div className="text-gray-400 mb-4">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                        <Search className="w-8 h-8 text-gray-400" />
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      No companies found
-                    </h3>
-                    <p className="text-gray-500 max-w-md mx-auto mb-4">
-                      We couldn't find any companies matching your current search criteria.
-                    </p>
-                    <div className="text-sm text-gray-600 space-y-2">
-                      <p>Try adjusting your filters by:</p>
-                      <ul className="list-disc list-inside space-y-1 text-left max-w-sm mx-auto">
-                        <li>Using broader technology names or categories</li>
-                        <li>Removing some filters to expand your search</li>
-                        <li>Checking for typos in your search terms</li>
-                      </ul>
-                    </div>
-                  </div>
-                ) : !hasActiveFilters ? (
-                  <div className="p-12 text-center">
-                    <div className="text-purple-400 mb-4">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-purple-50 rounded-full flex items-center justify-center">
-                        <Filter className="w-8 h-8 text-purple-500" />
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      Ready to search 35M+ companies
-                    </h3>
-                    <p className="text-gray-500 max-w-md mx-auto mb-6">
-                      Add at least one filter to start discovering companies that match your criteria.
-                    </p>
-                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 max-w-lg mx-auto">
-                      <h4 className="font-medium text-purple-900 mb-2">Quick start:</h4>
-                      <div className="text-sm text-purple-700 space-y-1 text-left">
-                        <p>• Search by <strong>Technology Names</strong> (e.g., React, Salesforce, AWS)</p>
-                        <p>• Filter by <strong>Technology Categories</strong> (e.g., CRM, Analytics)</p>
-                        <p>• Use <strong>Advanced Filters</strong> for precise targeting</p>
-                      </div>
-                    </div>
-                  </div>
-                ) : hasActiveFilters && !hasPerformedSearch ? (
-                  <div className="p-12 text-center">
-                    <div className="text-blue-400 mb-4">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-blue-50 rounded-full flex items-center justify-center">
-                        <Search className="w-8 h-8 text-blue-500" />
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      Ready to search with your filters
-                    </h3>
-                    <p className="text-gray-500 max-w-md mx-auto">
-                      You've applied filters. Click the <strong>Search</strong> button above to find companies matching your criteria.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="p-12 text-center">
-                    <div className="text-gray-400 mb-2">
-                      <Search className="w-12 h-12 mx-auto mb-4" />
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      Ready to search
-                    </h3>
-                    <p className="text-gray-500 max-w-md mx-auto">
-                      Click the Search button to find companies matching your filters.
-                    </p>
-                  </div>
-                  )}
+                {/* Right column for results section */}
+                <div className="xl:col-span-1">
+                  {/* This space can be used for result summaries, export options, etc. */}
                 </div>
-              </div>
-              
-              {/* Right column for results section remains empty or could contain summary */}
-              <div className="xl:col-span-1">
-                {/* This space can be used for result summaries, export options, etc. */}
               </div>
             </div>
           </div>
