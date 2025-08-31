@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { SearchObject } from "@/lib/types";
+import { SearchObject, SortOption } from "@/lib/types";
 import FilterBuilder from "@/components/FilterBuilder";
 import SearchResults from "@/components/SearchResults";
 import QueryPreview from "@/components/QueryPreview";
@@ -104,6 +104,16 @@ export default function Home() {
     const newSearchObject = {
       ...searchObject,
       offset: newOffset,
+    };
+    setSearchObject(newSearchObject);
+    search(newSearchObject);
+  }, [search, searchObject]);
+
+  const handleSortChange = useCallback((sort: SortOption[]) => {
+    const newSearchObject = {
+      ...searchObject,
+      sort,
+      offset: 0, // Reset to first page when sorting changes
     };
     setSearchObject(newSearchObject);
     search(newSearchObject);
@@ -396,8 +406,9 @@ export default function Home() {
                           currentOffset={searchObject.offset || 0}
                           limit={searchObject.limit || 10}
                           onPageChange={handlePageChange}
-                          onSortChange={(sort) => setSearchObject(prev => ({ ...prev, sort }))}
+                          onSortChange={handleSortChange}
                           onExport={() => setExportDialogOpen(true)}
+                          currentSort={searchObject.sort}
                         />
                       </div>
                     ) : hasSearchedWithNoResults ? (
