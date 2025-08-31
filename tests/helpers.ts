@@ -19,14 +19,12 @@ export class TestHelpers {
         await button.waitFor({ state: 'visible', timeout: 2000 });
         await button.click();
         await this.page.waitForTimeout(2000);
-        console.log(`✓ Successfully clicked technology filter: ${techName}`);
         return true;
       } catch (error) {
         continue;
       }
     }
     
-    console.log(`Technology filter "${techName}" not found or not clickable`);
     return false;
   }
 
@@ -44,7 +42,6 @@ export class TestHelpers {
       
       return true;
     } catch (error) {
-      console.log('Search button not available or enabled:', error);
       return false;
     }
   }
@@ -77,14 +74,11 @@ async clearAllFilters() {
         await clearButton.waitFor({ state: 'visible', timeout: 2000 });
         await clearButton.click();
         await this.page.waitForTimeout(2000);
-        console.log('✓ Successfully clicked Clear All button');
         return;
       } catch (error) {
         continue;
       }
     }
-    
-    console.log('Clear All button not found or not clickable');
   }
 
   async showTableFilters() {

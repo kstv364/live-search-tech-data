@@ -26,8 +26,6 @@ test.describe('Basic Application Tests', () => {
       const searchButton = page.getByRole('button', { name: /Search/i });
       await expect(searchButton).toBeEnabled();
       await expect(page.getByText(/filter.*applied/i)).toBeVisible();
-    } else {
-      console.log('React filter button not found - this is expected if no sample data is available');
     }
   });
 

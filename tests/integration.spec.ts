@@ -84,7 +84,6 @@ test.describe('Full Application Integration', () => {
             }
           }
         } catch (error) {
-          console.log('Pagination test skipped - not available');
         }
       } else {
         await expect(page.getByText('No companies found')).toBeVisible();
