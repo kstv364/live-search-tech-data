@@ -34,19 +34,28 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({ value, onChange, loading 
   const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false);
   const [multiValueFilters, setMultiValueFilters] = useState<MultiValueFilter[]>([]);
   
+  // Debug log to see current filter state
+  console.log("FilterBuilder value.filters:", value.filters);
+  
   // Create a reset key based on the filters to reset multi-value components when filters are cleared
   // Only reset when conditions array is actually empty and different from before
   const resetKey = value.filters.conditions.length === 0 ? 'reset' : 'active';
 
-  // Count advanced filter conditions
+  // Count only advanced filter conditions (exclude tech_name and tech_category with IN/NOT IN operators)
   const advancedFilterCount = value.filters.conditions.filter(condition => {
     if ('field' in condition) {
-      return !['tech_name', 'tech_category'].includes(condition.field);
+      // Count tech fields only if they use non-IN/NOT IN operators (advanced usage)
+      if (['tech_name', 'tech_category'].includes(condition.field)) {
+        return !['IN', 'NOT IN'].includes(condition.operator);
+      }
+      // Count all other fields
+      return true;
     }
-    return true;
+    return true; // Count group conditions as advanced
   }).length;
 
   const handleFilterGroupChange = useCallback((updatedFilterGroup: FilterGroup) => {
+    console.log("handleFilterGroupChange called with:", updatedFilterGroup);
     onChange({
       ...value,
       filters: updatedFilterGroup
@@ -57,16 +66,28 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({ value, onChange, loading 
     // Convert multi-value filters to filter conditions
     const activeFilters = filters.filter(f => f.enabled && f.values.length > 0);
     
-    // Remove existing multi-value conditions for this field from the filter group
-    const existingConditions = value.filters.conditions.filter(condition => {
+    // Keep existing advanced filter conditions and tech_name/tech_category conditions that are NOT IN/NOT IN operations
+    const advancedConditions = value.filters.conditions.filter(condition => {
       if ('field' in condition) {
-        return condition.field !== field;
+        // Keep non-tech fields OR tech fields that are not IN/NOT IN (i.e., advanced usage of tech fields)
+        return (!['tech_name', 'tech_category'].includes(condition.field) || 
+                !['IN', 'NOT IN'].includes(condition.operator));
       }
-      return true;
+      return true; // Keep group conditions as well
     });
 
-    // Add new conditions for active multi-value filters
-    const newConditions: (FilterCondition | FilterGroup)[] = [...existingConditions];
+    // Keep other normal filter conditions (tech_name OR tech_category with IN/NOT IN, but not the current field being updated)
+    const otherNormalConditions = value.filters.conditions.filter(condition => {
+      if ('field' in condition) {
+        return (['tech_name', 'tech_category'].includes(condition.field) && 
+                ['IN', 'NOT IN'].includes(condition.operator) && 
+                condition.field !== field);
+      }
+      return false;
+    });
+
+    // Create new conditions for the current field
+    const newConditions: (FilterCondition | FilterGroup)[] = [...otherNormalConditions];
     
     activeFilters.forEach(filter => {
       let operator: FilterCondition['operator'];
@@ -100,9 +121,12 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({ value, onChange, loading 
       }
     });
 
+    // Merge normal conditions with advanced conditions
+    const mergedConditions = [...newConditions, ...advancedConditions];
+
     const updatedFilterGroup: FilterGroup = {
       ...value.filters,
-      conditions: newConditions
+      conditions: mergedConditions
     };
 
     onChange({

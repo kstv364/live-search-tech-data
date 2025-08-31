@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { AutocompleteInput } from "@/components/ui/autocomplete-input";
 import { MultiValueInput } from "@/components/ui/multi-value-input";
+import { FilterMultiValueInput } from "@/components/ui/filter-multi-value-input";
 
 interface FilterConditionComponentProps {
   filterCondition: FilterCondition;
@@ -149,10 +150,24 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
   };
 
   const handleOperatorChange = (operator: FilterCondition["operator"]) => {
-    onChange({ ...filterCondition, operator });
+    let newValue = filterCondition.value;
+    
+    // When switching to IN/NOT IN, ensure value is an array
+    if ((operator === "IN" || operator === "NOT IN")) {
+      if (!Array.isArray(newValue)) {
+        newValue = newValue ? [newValue] : [];
+      }
+    }
+    // When switching from IN/NOT IN to other operators, convert array to single value
+    else if ((filterCondition.operator === "IN" || filterCondition.operator === "NOT IN") && Array.isArray(newValue)) {
+      newValue = newValue.length > 0 ? newValue[0] : "";
+    }
+    
+    onChange({ ...filterCondition, operator, value: newValue });
   };
 
   const handleValueChange = (value: string | number | (string | number)[]) => {
+    console.log("handleValueChange called with:", value, "operator:", filterCondition.operator);
     onChange({ ...filterCondition, value });
   };
 
@@ -172,6 +187,33 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
             <SelectItem value="No" className="text-xs">No (Free)</SelectItem>
           </SelectContent>
         </Select>
+      );
+    }
+
+    // Handle IN/NOT IN operators first (before field-specific logic)
+    if (["IN", "NOT IN"].includes(filterCondition.operator)) {
+      // Ensure we always have an array for IN/NOT IN operations
+      let currentValues: (string | number)[];
+      if (Array.isArray(filterCondition.value)) {
+        currentValues = filterCondition.value;
+      } else if (filterCondition.value !== null && filterCondition.value !== undefined && filterCondition.value !== "") {
+        currentValues = [filterCondition.value];
+      } else {
+        currentValues = [];
+      }
+      
+      const useTypeahead = TYPEAHEAD_FIELDS.includes(filterCondition.field);
+      const isNumberField = NUMBER_FIELDS.includes(filterCondition.field);
+      
+      return (
+        <FilterMultiValueInput
+          values={currentValues}
+          onChange={handleValueChange}
+          placeholder="Add multiple values..."
+          field={filterCondition.field}
+          useTypeahead={useTypeahead}
+          type={isNumberField ? "number" : "text"}
+        />
       );
     }
     
@@ -252,24 +294,6 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
         );
       }
       
-      if (["IN", "NOT IN"].includes(filterCondition.operator)) {
-        const displayValue = Array.isArray(filterCondition.value) 
-          ? filterCondition.value.join(", ") 
-          : typeof filterCondition.value === 'string' 
-            ? filterCondition.value 
-            : String(filterCondition.value);
-        
-        const isSpendField = filterCondition.field === "spend";
-        return (
-          <Input
-            placeholder={isSpendField ? "e.g., 1000, 5000" : "e.g., 1, 2, 3"}
-            value={displayValue}
-            onChange={(e) => handleValueChange(e.target.value.split(",").map(v => Number(v.trim())).filter(n => !isNaN(n)))}
-            className="h-8 text-xs"
-          />
-        );
-      }
-      
       const numberValue = typeof filterCondition.value === 'number' ? filterCondition.value : 0;
       const isSpendField = filterCondition.field === "spend";
       return (
@@ -278,23 +302,6 @@ export const FilterConditionComponent: React.FC<FilterConditionComponentProps> =
           placeholder={isSpendField ? "Amount ($)" : "Number"}
           value={numberValue}
           onChange={(e) => handleValueChange(Number(e.target.value))}
-          className="h-8 text-xs"
-        />
-      );
-    }
-
-    if (["IN", "NOT IN"].includes(filterCondition.operator)) {
-      const displayValue = Array.isArray(filterCondition.value) 
-        ? filterCondition.value.join(", ") 
-        : typeof filterCondition.value === 'string' 
-          ? filterCondition.value 
-          : String(filterCondition.value);
-      
-      return (
-        <Input
-          placeholder="Multiple values (comma separated)"
-          value={displayValue}
-          onChange={(e) => handleValueChange(e.target.value.split(",").map(v => v.trim()))}
           className="h-8 text-xs"
         />
       );
