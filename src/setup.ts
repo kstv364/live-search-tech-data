@@ -11,18 +11,72 @@ const __dirname = path.dirname(__filename);
 const dataDir = path.join(__dirname, "../data_model");
 const dbPath = path.join(__dirname, "../database", "builtwith.db");
 
+// Type definitions
+interface TechIndexEntry {
+  Name: string;
+  Premium: string;
+  Description: string;
+  Link: string;
+  TrendsLink: string;
+  Category: string;
+  FirstAdded: string;
+  Parent?: string;
+  Ticker?: string;
+  Exchange?: string;
+  PublicCompanyType?: string;
+  PublicCompanyName?: string;
+  [key: string]: string | undefined; // Index signature for dynamic access
+}
+
+interface MetaDataEntry {
+  D: string; // domain (required)
+  CN?: string; // company name
+  CAT?: string; // category
+  C?: string; // city
+  ST?: string; // state
+  CO?: string; // country
+  Z?: string; // postal code
+  SP?: number; // spend
+  FI?: string; // first indexed
+  LI?: string; // last indexed
+  P?: Array<{ Name: string; Title?: string }>; // people
+  E?: string[]; // emails
+  T?: string[]; // phones
+  S?: string[]; // social links
+}
+
+interface TechDataEntry {
+  D: string; // domain (required)
+  SP: number; // spend (required)
+  FI: string; // first indexed (required)
+  LI: string; // last indexed (required)
+  SD?: string; // subdomain
+  T: Array<{ // technologies (required)
+    N: string; // name (required)
+    FD: string; // first detected (required)
+    LD: string; // last detected (required)
+  }>;
+}
+
+interface DatabaseRow {
+  id: number;
+  name?: string;
+  root_domain?: string;
+  [key: string]: unknown;
+}
+
 // Utility: parse JSONL using readFileSync + split (utf16le)
-function parseJsonlLines(filePath: string, encoding = "utf16le") {
+function parseJsonlLines<T = unknown>(filePath: string, encoding: BufferEncoding = "utf16le"): T[] {
   if (!fs.existsSync(filePath)) throw new Error(`Missing file ${filePath}`);
   const raw = fs.readFileSync(filePath, encoding);
   const noBom = raw.replace(/^\uFEFF/, "");
   const lines = noBom.split(/\r?\n/);
-  const items: any[] = [];
+  const items: T[] = [];
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
     try {
-      items.push(JSON.parse(line));
+      items.push(JSON.parse(line) as T);
     } catch (err) {
       console.warn(`Skipping invalid JSON on line ${i + 1} of ${path.basename(filePath)}:`, err);
       continue;
@@ -154,9 +208,9 @@ CREATE VIRTUAL TABLE technology_fts USING fts5(name, category, content='technolo
     if (!fs.existsSync(metaDataPath)) throw new Error(`Missing ${metaDataPath}`);
     if (!fs.existsSync(techDataPath)) throw new Error(`Missing ${techDataPath}`);
 
-    const techIndex = JSON.parse(fs.readFileSync(techIndexPath, "utf8"));
-    const metaData = parseJsonlLines(metaDataPath, "utf16le");
-    const techData = parseJsonlLines(techDataPath, "utf16le");
+    const techIndex: TechIndexEntry[] = JSON.parse(fs.readFileSync(techIndexPath, "utf8"));
+    const metaData = parseJsonlLines<MetaDataEntry>(metaDataPath, "utf16le");
+    const techData = parseJsonlLines<TechDataEntry>(techDataPath, "utf16le");
 
     console.log(`Loaded: techIndex=${techIndex.length}, metaData=${metaData.length}, techData=${techData.length}`);
 
@@ -194,8 +248,11 @@ CREATE VIRTUAL TABLE technology_fts USING fts5(name, category, content='technolo
 
     // Build technology map
     const techIdByName = new Map<string, number>();
-    for (const r of db.prepare("SELECT id, name FROM technology").all()) {
-      techIdByName.set(r.name, r.id);
+    const techRows = db.prepare("SELECT id, name FROM technology").all() as DatabaseRow[];
+    for (const r of techRows) {
+      if (r.name && typeof r.id === 'number') {
+        techIdByName.set(r.name, r.id);
+      }
     }
 
     // --- Insert companies and associated metadata (metaData; D required) ---
@@ -228,9 +285,9 @@ CREATE VIRTUAL TABLE technology_fts USING fts5(name, category, content='technolo
         );
 
         // lookup the company_id for related inserts
-        const compRow = db.prepare("SELECT id FROM company WHERE root_domain = ?").get(m.D);
-        const companyId = compRow ? compRow.id : null;
-        if (!companyId) continue;
+        const compRow = db.prepare("SELECT id FROM company WHERE root_domain = ?").get(m.D) as DatabaseRow | undefined;
+        const companyId = compRow?.id ?? null;
+        if (!companyId || typeof companyId !== 'number') continue;
 
         // People (P) array -> person table (Name, Title)
         if (Array.isArray(m.P)) {
@@ -266,8 +323,11 @@ CREATE VIRTUAL TABLE technology_fts USING fts5(name, category, content='technolo
 
     // Build company map
     const companyIdByDomain = new Map<string, number>();
-    for (const r of db.prepare("SELECT id, root_domain FROM company").all()) {
-      companyIdByDomain.set(r.root_domain, r.id);
+    const companyRows = db.prepare("SELECT id, root_domain FROM company").all() as DatabaseRow[];
+    for (const r of companyRows) {
+      if (r.root_domain && typeof r.id === 'number' && typeof r.root_domain === 'string') {
+        companyIdByDomain.set(r.root_domain, r.id);
+      }
     }
 
     // --- Prepare statements for fallback inserts and site & site_technology insertion ---
@@ -289,10 +349,10 @@ CREATE VIRTUAL TABLE technology_fts USING fts5(name, category, content='technolo
     `);
 
     // Helper to find/create site and return site_id
-    function upsertSite(companyId: number, rootDomain: string, subdomain: string | null, monthlySpend: number | null, firstIndexed: string | null, lastIndexed: string | null) {
+    function upsertSite(companyId: number, rootDomain: string, subdomain: string | null, monthlySpend: number | null, firstIndexed: string | null, lastIndexed: string | null): number {
       // Use IS operator for NULL subdomains in SQLite query (we pass null for subdomain)
-      const existing = db.prepare(`SELECT id FROM site WHERE company_id = ? AND (subdomain IS ? OR subdomain = ?) LIMIT 1`).get(companyId, subdomain, subdomain || "");
-      if (existing && existing.id) {
+      const existing = db.prepare(`SELECT id FROM site WHERE company_id = ? AND (subdomain IS ? OR subdomain = ?) LIMIT 1`).get(companyId, subdomain, subdomain || "") as DatabaseRow | undefined;
+      if (existing?.id && typeof existing.id === 'number') {
         // update monthly spend / index dates if provided (overwrite)
         updateSite.run(monthlySpend ?? null, firstIndexed ?? null, lastIndexed ?? null, existing.id);
         return existing.id;
@@ -316,8 +376,8 @@ CREATE VIRTUAL TABLE technology_fts USING fts5(name, category, content='technolo
         let companyId = companyIdByDomain.get(row.D);
         if (!companyId) {
           insertCompanyPlaceholder.run(row.D);
-          const r = db.prepare("SELECT id FROM company WHERE root_domain = ?").get(row.D);
-          if (r && r.id) {
+          const r = db.prepare("SELECT id FROM company WHERE root_domain = ?").get(row.D) as DatabaseRow | undefined;
+          if (r?.id && typeof r.id === 'number') {
             companyId = r.id;
             companyIdByDomain.set(row.D, companyId);
           } else {
@@ -348,8 +408,8 @@ CREATE VIRTUAL TABLE technology_fts USING fts5(name, category, content='technolo
           let techId = techIdByName.get(t.N);
           if (!techId) {
             insertTechFallback.run(t.N);
-            const tr = db.prepare("SELECT id FROM technology WHERE name = ?").get(t.N);
-            if (tr && tr.id) {
+            const tr = db.prepare("SELECT id FROM technology WHERE name = ?").get(t.N) as DatabaseRow | undefined;
+            if (tr?.id && typeof tr.id === 'number') {
               techId = tr.id;
               techIdByName.set(t.N, techId);
             } else {
@@ -371,14 +431,14 @@ CREATE VIRTUAL TABLE technology_fts USING fts5(name, category, content='technolo
 
     // --- Ensure parent technology rows exist for any parent_name references (fallback) ---
     db.transaction(() => {
-      const parents = db.prepare("SELECT DISTINCT parent_name FROM technology WHERE parent_name IS NOT NULL AND parent_name != ''").all();
+      const parents = db.prepare("SELECT DISTINCT parent_name FROM technology WHERE parent_name IS NOT NULL AND parent_name != ''").all() as Array<{ parent_name: string }>;
       for (const p of parents) {
         const parentName = p.parent_name;
         if (!parentName) continue;
         if (!techIdByName.has(parentName)) {
           insertTechFallback.run(parentName);
-          const r = db.prepare("SELECT id FROM technology WHERE name = ?").get(parentName);
-          if (r && r.id) techIdByName.set(parentName, r.id);
+          const r = db.prepare("SELECT id FROM technology WHERE name = ?").get(parentName) as DatabaseRow | undefined;
+          if (r?.id && typeof r.id === 'number') techIdByName.set(parentName, r.id);
         }
       }
     })();
@@ -392,8 +452,8 @@ CREATE VIRTUAL TABLE technology_fts USING fts5(name, category, content='technolo
     db.transaction(() => {
       db.exec("DELETE FROM company_tech_rollup_stats;");
       // Build lists
-      const companies = db.prepare("SELECT id, root_domain FROM company").all();
-      const parentNames = db.prepare("SELECT DISTINCT parent_name FROM technology WHERE parent_name IS NOT NULL AND parent_name != ''").all();
+      const companies = db.prepare("SELECT id, root_domain FROM company").all() as Array<{ id: number; root_domain: string }>;
+      const parentNames = db.prepare("SELECT DISTINCT parent_name FROM technology WHERE parent_name IS NOT NULL AND parent_name != ''").all() as Array<{ parent_name: string }>;
 
       for (const comp of companies) {
         for (const pr of parentNames) {
@@ -405,8 +465,8 @@ CREATE VIRTUAL TABLE technology_fts USING fts5(name, category, content='technolo
             JOIN technology t ON t.id = st.tech_id
             JOIN site s ON s.id = st.site_id
             WHERE s.company_id = ? AND t.parent_name = ?
-          `).get(comp.id, pname);
-          const cnt = (cntRow && cntRow.cnt) ? cntRow.cnt : 0;
+          `).get(comp.id, pname) as { cnt: number } | undefined;
+          const cnt = cntRow?.cnt ?? 0;
           if (cnt > 0) {
             const parentId = techIdByName.get(pname);
             if (parentId) {
