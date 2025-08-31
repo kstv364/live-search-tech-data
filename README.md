@@ -8,9 +8,16 @@ The BuiltWith Company Intelligence application is a powerful tool designed to he
 
 ## Application Screenshot
 
-![BuiltWith Company Intelligence Application](images/application-screenshot.jpg)
+![BuiltWith Company Intelligence Application](https://github.com/fiber-challenges/challenge-kstv364/blob/main/images/application-screenshot.jpg?raw=true)
 
 *The main interface showing the search filters, query preview, and results table with various technology and category options available.*
+
+<details>
+<summary>Alternative image link (if above doesn't load)</summary>
+
+![BuiltWith Company Intelligence Application](./images/app-screenshot-small.jpg)
+
+</details>
 
 ## Key Features
 
