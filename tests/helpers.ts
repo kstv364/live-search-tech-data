@@ -84,13 +84,12 @@ export class TestHelpers {
   /**
    * Clear all filters
    */
-  async clearAllFilters() {
+async clearAllFilters() {
     // Try multiple selectors for the Clear All button
     const selectors = [
       'button:has-text("Clear All")',
       'button[data-slot="button"]:has-text("Clear All")',
       '[data-slot="button"]:has-text("Clear All")',
-      'button.text-gray-600:has-text("Clear All")'
     ];
     
     for (const selector of selectors) {

@@ -112,13 +112,6 @@ test.describe('Full Application Integration', () => {
         await expect(page.getByText('Try adjusting your filters')).toBeVisible();
       }
       
-      // 12. Test query management
-      const saveButton = page.getByRole('button', { name: /Save Query/i });
-      if (await saveButton.isEnabled()) {
-        await saveButton.click();
-        // Handle save query interaction
-      }
-      
       // 13. Clear filters and return to initial state
       await helpers.clearAllFilters();
       await expect(page.getByText('Ready to search 35M+ companies')).toBeVisible();

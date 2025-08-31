@@ -57,7 +57,7 @@ test.describe('Export Functionality', () => {
       
       // Should open export dialog
       await expect(page.getByRole('dialog')).toBeVisible();
-      await expect(page.getByText(/Export/i)).toBeVisible();
+      await expect(page.getByRole('dialog').getByRole('heading', { name: 'Export to CSV' })).toBeVisible();
     }
   });
 
