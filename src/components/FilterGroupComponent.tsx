@@ -22,6 +22,30 @@ const FilterGroupComponent: React.FC<FilterGroupComponentProps> = ({
   depth = 0,
   setOpen
 }) => {
+  // Helper function to detect if a condition is a normal filter group
+  const isNormalFilterGroup = (condition: FilterCondition | FilterGroup): boolean => {
+    if ('conditions' in condition && condition.conditions.length > 0) {
+      const firstCondition = condition.conditions[0];
+      if ('field' in firstCondition) {
+        // Check if this is a normal filter group (tech fields with IN/NOT IN/LIKE)
+        return ['tech_name', 'tech_category'].includes(firstCondition.field) &&
+               condition.conditions.every(cond => 
+                 'field' in cond && 
+                 ['tech_name', 'tech_category'].includes(cond.field) && 
+                 ['IN', 'NOT IN', 'LIKE'].includes(cond.operator)
+               );
+      }
+    }
+    return false;
+  };
+
+  // Filter out normal filter groups from display, but keep track of original indices
+  const displayConditions = filterGroup.conditions?.map((condition, originalIndex) => ({
+    condition,
+    originalIndex,
+    isVisible: !isNormalFilterGroup(condition)
+  })).filter(item => item.isVisible) || [];
+
   const handleAddCondition = useCallback(() => {
     onChange({
       ...filterGroup,
@@ -46,14 +70,14 @@ const FilterGroupComponent: React.FC<FilterGroupComponentProps> = ({
     onChange({ ...filterGroup, operator });
   }, [filterGroup, onChange]);
 
-  const handleConditionChange = useCallback((index: number, updatedCondition: FilterCondition | FilterGroup) => {
+  const handleConditionChange = useCallback((originalIndex: number, updatedCondition: FilterCondition | FilterGroup) => {
     const newConditions = [...(filterGroup.conditions || [])];
-    newConditions[index] = updatedCondition;
+    newConditions[originalIndex] = updatedCondition;
     onChange({ ...filterGroup, conditions: newConditions });
   }, [filterGroup, onChange]);
 
-  const handleRemoveCondition = useCallback((index: number) => {
-    const newConditions = filterGroup.conditions.filter((_, i) => i !== index);
+  const handleRemoveCondition = useCallback((originalIndex: number) => {
+    const newConditions = filterGroup.conditions.filter((_, i) => i !== originalIndex);
     onChange({ ...filterGroup, conditions: newConditions });
   }, [filterGroup, onChange]);
 
@@ -97,14 +121,14 @@ const FilterGroupComponent: React.FC<FilterGroupComponentProps> = ({
       </div>
       
       <div className="space-y-2">
-        {filterGroup.conditions?.map((condition, index) => (
-          <div key={index} className="relative">
+        {displayConditions.map(({ condition, originalIndex }, displayIndex) => (
+          <div key={originalIndex} className="relative">
             {'conditions' in condition ? (
               // This is a nested filter group
             <FilterGroupComponent
               filterGroup={condition as FilterGroup}
-              onChange={(updated) => handleConditionChange(index, updated)}
-              onRemove={() => handleRemoveCondition(index)}
+              onChange={(updated) => handleConditionChange(originalIndex, updated)}
+              onRemove={() => handleRemoveCondition(originalIndex)}
               depth={depth + 1}
               setOpen={setOpen}   // ✅ forward down
             />
@@ -115,12 +139,12 @@ const FilterGroupComponent: React.FC<FilterGroupComponentProps> = ({
                 <div className="w-full sm:flex-1">
                   <FilterConditionComponent
                     filterCondition={condition as FilterCondition}
-                    onChange={(updated) => handleConditionChange(index, updated)}
+                    onChange={(updated) => handleConditionChange(originalIndex, updated)}
                     setOpen={setOpen}
                   />
                 </div>
                 <Button 
-                  onClick={() => handleRemoveCondition(index)}
+                  onClick={() => handleRemoveCondition(originalIndex)}
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 flex-shrink-0 mt-1 sm:mt-0"

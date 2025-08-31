@@ -41,17 +41,27 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({ value, onChange, loading 
   // Only reset when conditions array is actually empty and different from before
   const resetKey = value.filters.conditions.length === 0 ? 'reset' : 'active';
 
-  // Count only advanced filter conditions (exclude tech_name and tech_category with IN/NOT IN operators)
+  // Count advanced filter conditions (only individual FilterCondition objects, not normal filter groups)
   const advancedFilterCount = value.filters.conditions.filter(condition => {
+    // Count only individual FilterCondition objects (advanced filters)
     if ('field' in condition) {
-      // Count tech fields only if they use non-IN/NOT IN operators (advanced usage)
-      if (['tech_name', 'tech_category'].includes(condition.field)) {
-        return !['IN', 'NOT IN'].includes(condition.operator);
-      }
-      // Count all other fields
-      return true;
+      return true; // This is an individual condition, count it as advanced
     }
-    return true; // Count group conditions as advanced
+    // For FilterGroup objects, check if they're advanced filter groups (not normal filter groups)
+    if ('conditions' in condition && condition.conditions.length > 0) {
+      const firstCondition = condition.conditions[0];
+      if ('field' in firstCondition) {
+        // Check if this is a normal filter group (tech fields with IN/NOT IN/LIKE)
+        const isNormalFilterGroup = ['tech_name', 'tech_category'].includes(firstCondition.field) &&
+                                  condition.conditions.every(cond => 
+                                    'field' in cond && 
+                                    ['tech_name', 'tech_category'].includes(cond.field) && 
+                                    ['IN', 'NOT IN', 'LIKE'].includes(cond.operator)
+                                  );
+        return !isNormalFilterGroup; // Don't count normal filter groups
+      }
+    }
+    return true; // Count other filter groups as advanced
   }).length;
 
   const handleFilterGroupChange = useCallback((updatedFilterGroup: FilterGroup) => {
@@ -66,35 +76,38 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({ value, onChange, loading 
     // Convert multi-value filters to filter conditions
     const activeFilters = filters.filter(f => f.enabled && f.values.length > 0);
     
-    // Keep existing advanced filter conditions and tech_name/tech_category conditions that are NOT IN/NOT IN operations
-    const advancedConditions = value.filters.conditions.filter(condition => {
+    // Remove any existing normal filter group for this field
+    const existingConditions = value.filters.conditions.filter(condition => {
+      // Keep all advanced filter conditions (individual FilterCondition objects)
       if ('field' in condition) {
-        // Keep non-tech fields OR tech fields that are not IN/NOT IN (i.e., advanced usage of tech fields)
-        return (!['tech_name', 'tech_category'].includes(condition.field) || 
-                !['IN', 'NOT IN'].includes(condition.operator));
+        return true; // Keep all individual conditions (these are advanced filters)
       }
-      return true; // Keep group conditions as well
+      // For FilterGroup objects, check if they're normal filter groups for this field
+      if ('conditions' in condition && condition.conditions.length > 0) {
+        // Check if this is a normal filter group for the current field
+        const firstCondition = condition.conditions[0];
+        if ('field' in firstCondition && firstCondition.field === field) {
+          // Check if all conditions in this group are normal filter conditions (IN/NOT IN/LIKE)
+          const isNormalFilterGroup = condition.conditions.every(cond => 
+            'field' in cond && 
+            cond.field === field && 
+            ['IN', 'NOT IN', 'LIKE'].includes(cond.operator)
+          );
+          return !isNormalFilterGroup; // Remove normal filter groups for this field
+        }
+      }
+      return true; // Keep other filter groups
     });
 
-    // Keep other normal filter conditions (tech_name OR tech_category with IN/NOT IN, but not the current field being updated)
-    const otherNormalConditions = value.filters.conditions.filter(condition => {
-      if ('field' in condition) {
-        return (['tech_name', 'tech_category'].includes(condition.field) && 
-                ['IN', 'NOT IN'].includes(condition.operator) && 
-                condition.field !== field);
-      }
-      return false;
-    });
-
-    // Create new conditions for the current field
-    const newConditions: (FilterCondition | FilterGroup)[] = [...otherNormalConditions];
+    // Create new normal filter conditions for the current field
+    const newNormalConditions: FilterCondition[] = [];
     
     activeFilters.forEach(filter => {
       let operator: FilterCondition['operator'];
       switch (filter.type) {
         case "ANY_OF":
           operator = "IN";
-          newConditions.push({
+          newNormalConditions.push({
             field: field as any,
             operator,
             value: filter.values
@@ -103,7 +116,7 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({ value, onChange, loading 
         case "ALL_OF":
           // For ALL_OF, we need to create multiple conditions with AND
           filter.values.forEach(val => {
-            newConditions.push({
+            newNormalConditions.push({
               field: field as any,
               operator: "LIKE",
               value: `%${val}%`
@@ -112,7 +125,7 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({ value, onChange, loading 
           break;
         case "NONE_OF":
           operator = "NOT IN";
-          newConditions.push({
+          newNormalConditions.push({
             field: field as any,
             operator,
             value: filter.values
@@ -121,12 +134,19 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({ value, onChange, loading 
       }
     });
 
-    // Merge normal conditions with advanced conditions
-    const mergedConditions = [...newConditions, ...advancedConditions];
+    // If we have normal filter conditions, wrap them in a FilterGroup
+    const allConditions = [...existingConditions];
+    if (newNormalConditions.length > 0) {
+      const normalFilterGroup: FilterGroup = {
+        operator: "AND",
+        conditions: newNormalConditions
+      };
+      allConditions.push(normalFilterGroup);
+    }
 
     const updatedFilterGroup: FilterGroup = {
       ...value.filters,
-      conditions: mergedConditions
+      conditions: allConditions
     };
 
     onChange({

@@ -42,12 +42,12 @@ export const MultiValueFilterSection: React.FC<MultiValueFilterSectionProps> = (
   // Reset filters when resetKey changes
   useEffect(() => {
     if (resetKey === 'reset') {
-      const initialFilters = [
+      const resetFilters = [
         { id: "contains_any", type: "ANY_OF" as const, values: [], enabled: false },
         { id: "contains_all", type: "ALL_OF" as const, values: [], enabled: false },
         { id: "contains_none", type: "NONE_OF" as const, values: [], enabled: false },
       ];
-      setFilters(initialFilters);
+      setFilters(resetFilters);
     }
   }, [resetKey, field]);
 
