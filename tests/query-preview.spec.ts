@@ -1,135 +1,1 @@
-import { test, expect } from '@playwright/test';
-
-test.describe('Query Preview and Saved Queries', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-  });
-
-  test('should show empty query preview initially', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Query Preview' })).toBeVisible();
-
-    await expect(page.getByText('Add filters to see query preview')).toBeVisible();
-  });
-
-  test('should update query preview when filters are added', async ({ page }) => {
-    const reactButton = page.locator('button:has-text("React")').first();
-    if (await reactButton.isVisible()) {
-      await reactButton.click();
-      await page.waitForTimeout(2000);
-    }
-    
-    const queryPreview = page.locator('[data-testid="query-preview"]') || 
-                        page.getByText('Query Preview').locator('..');
-    
-    const hasEmptyMessage = await page.getByText('Add filters to see query preview').isVisible();
-    expect(hasEmptyMessage).toBe(false);
-  });
-
-  test('should show saved queries section', async ({ page }) => {
-    await expect(page.getByText('Load Query')).toBeVisible();
-    
-    const saveButton = page.getByRole('button', { name: /Save Query/i });
-    await expect(saveButton).toBeVisible();
-  });
-
-  test('should enable save query when filters are applied', async ({ page }) => {
-    const saveButton = page.getByRole('button', { name: /Save Query/i });
-    
-    const reactButton = page.locator('button:has-text("React")').first();
-    if (await reactButton.isVisible()) {
-      await reactButton.click();
-      await page.waitForTimeout(2000);
-    }
-    
-    await expect(saveButton).toBeEnabled();
-  });
-
-  test('should have load query functionality', async ({ page }) => {
-    const loadButton = page.getByRole('button', { name: /Load Query/i });
-    await expect(loadButton).toBeVisible();
-    
-    await loadButton.click();
-    
-    const hasDropdown = await page.locator('[role="listbox"]').isVisible();
-    const hasDialog = await page.getByRole('dialog').isVisible();
-    const hasMenu = await page.locator('[role="menu"]').isVisible();
-    
-    expect(hasDropdown || hasDialog || hasMenu).toBe(true);
-  });
-
-  test('should maintain query preview state', async ({ page }) => {
-    const reactButton = page.locator('button:has-text("React")').first();
-    if (await reactButton.isVisible()) {
-      await reactButton.click();
-      await page.waitForTimeout(2000);
-    }
-    
-    const awsButton = page.locator('button:has-text("AWS")').first();
-    if (await awsButton.isVisible()) {
-      await awsButton.click();
-      await page.waitForTimeout(2000);
-    }
-    
-    const querySection = page.getByRole('heading', { name: 'Query Preview' });
-    await expect(querySection).toBeVisible();
-    
-    try {
-      await expect(page.getByText('2 filters applied')).toBeVisible();
-    } catch {
-      await expect(page.getByText('1 filter applied')).toBeVisible();
-    }
-  });
-
-  test('should update query preview when filters change', async ({ page }) => {
-    const reactButton = page.locator('button:has-text("React")').first();
-    if (await reactButton.isVisible()) {
-      await reactButton.click();
-      await page.waitForTimeout(2000);
-    }
-    
-    await expect(page.getByText('1 filter applied')).toBeVisible();
-    
-    const salesforceButton = page.locator('button:has-text("Salesforce")').first();
-    if (await salesforceButton.isVisible()) {
-      await salesforceButton.click();
-      await page.waitForTimeout(2000);
-    }
-    
-    const has2Filters = await page.getByText('2 filters applied').isVisible();
-    const has1Filter = await page.getByText('1 filter applied').isVisible();
-    expect(has2Filters || has1Filter).toBe(true);
-  });
-
-  test('should clear query preview when filters are cleared', async ({ page }) => {
-    const reactButton = page.locator('button:has-text("React")').first();
-    if (await reactButton.isVisible()) {
-      await reactButton.click();
-      await page.waitForTimeout(2000);
-    }
-    
-    const clearAllButton = page.getByRole('button', { name: /Clear All/i });
-    await clearAllButton.click();
-    
-    await expect(page.getByText('Add filters to see query preview')).toBeVisible();
-  });
-
-  test('should persist query state across interactions', async ({ page }) => {
-    const reactButton = page.locator('button:has-text("React")').first();
-    if (await reactButton.isVisible()) {
-      await reactButton.click();
-      await page.waitForTimeout(2000);
-    }
-    
-    const searchButton = page.getByRole('button', { name: /Search/i });
-    await expect(searchButton).toBeEnabled();
-    await searchButton.click();
-    
-    await page.waitForTimeout(2000);
-    
-    const hasEmptyMessage = await page.getByText('Add filters to see query preview').isVisible();
-    expect(hasEmptyMessage).toBe(false);
-    
-    await expect(page.getByText('1 filter applied')).toBeVisible();
-    await expect(page.getByText(/filter.*applied/i)).toBeVisible();
-  });
-});
+import { test, expect } from '@playwright/test';test.describe('Query Preview and Saved Queries', () => {  test.beforeEach(async ({ page }) => {    await page.goto('/');  });  test('should show empty query preview initially', async ({ page }) => {    await expect(page.getByRole('heading', { name: 'Query Preview' })).toBeVisible();    await expect(page.getByText('Add filters to see query preview')).toBeVisible();  });  test('should update query preview when filters are added', async ({ page }) => {    const reactButton = page.locator('button:has-text("React")').first();    if (await reactButton.isVisible()) {      await reactButton.click();      await page.waitForTimeout(2000);    }    const queryPreview = page.locator('[data-testid="query-preview"]') ||                         page.getByText('Query Preview').locator('..');    const hasEmptyMessage = await page.getByText('Add filters to see query preview').isVisible();    expect(hasEmptyMessage).toBe(false);  });  test('should show saved queries section', async ({ page }) => {    await expect(page.getByText('Load Query')).toBeVisible();    const saveButton = page.getByRole('button', { name: /Save Query/i });    await expect(saveButton).toBeVisible();  });  test('should enable save query when filters are applied', async ({ page }) => {    const saveButton = page.getByRole('button', { name: /Save Query/i });    const reactButton = page.locator('button:has-text("React")').first();    if (await reactButton.isVisible()) {      await reactButton.click();      await page.waitForTimeout(2000);    }    await expect(saveButton).toBeEnabled();  });  test('should have load query functionality', async ({ page }) => {    const loadButton = page.getByRole('button', { name: /Load Query/i });    await expect(loadButton).toBeVisible();    await loadButton.click();    const hasDropdown = await page.locator('[role="listbox"]').isVisible();    const hasDialog = await page.getByRole('dialog').isVisible();    const hasMenu = await page.locator('[role="menu"]').isVisible();    expect(hasDropdown || hasDialog || hasMenu).toBe(true);  });  test('should maintain query preview state', async ({ page }) => {    const reactButton = page.locator('button:has-text("React")').first();    if (await reactButton.isVisible()) {      await reactButton.click();      await page.waitForTimeout(2000);    }    const awsButton = page.locator('button:has-text("AWS")').first();    if (await awsButton.isVisible()) {      await awsButton.click();      await page.waitForTimeout(2000);    }    const querySection = page.getByRole('heading', { name: 'Query Preview' });    await expect(querySection).toBeVisible();    try {      await expect(page.getByText('2 filters applied')).toBeVisible();    } catch {      await expect(page.getByText('1 filter applied')).toBeVisible();    }  });  test('should update query preview when filters change', async ({ page }) => {    const reactButton = page.locator('button:has-text("React")').first();    if (await reactButton.isVisible()) {      await reactButton.click();      await page.waitForTimeout(2000);    }    await expect(page.getByText('1 filter applied')).toBeVisible();    const salesforceButton = page.locator('button:has-text("Salesforce")').first();    if (await salesforceButton.isVisible()) {      await salesforceButton.click();      await page.waitForTimeout(2000);    }    const has2Filters = await page.getByText('2 filters applied').isVisible();    const has1Filter = await page.getByText('1 filter applied').isVisible();    expect(has2Filters || has1Filter).toBe(true);  });  test('should clear query preview when filters are cleared', async ({ page }) => {    const reactButton = page.locator('button:has-text("React")').first();    if (await reactButton.isVisible()) {      await reactButton.click();      await page.waitForTimeout(2000);    }    const clearAllButton = page.getByRole('button', { name: /Clear All/i });    await clearAllButton.click();    await expect(page.getByText('Add filters to see query preview')).toBeVisible();  });  test('should persist query state across interactions', async ({ page }) => {    const reactButton = page.locator('button:has-text("React")').first();    if (await reactButton.isVisible()) {      await reactButton.click();      await page.waitForTimeout(2000);    }    const searchButton = page.getByRole('button', { name: /Search/i });    await expect(searchButton).toBeEnabled();    await searchButton.click();    await page.waitForTimeout(2000);    const hasEmptyMessage = await page.getByText('Add filters to see query preview').isVisible();    expect(hasEmptyMessage).toBe(false);    await expect(page.getByText('1 filter applied')).toBeVisible();    await expect(page.getByText(/filter.*applied/i)).toBeVisible();  });});

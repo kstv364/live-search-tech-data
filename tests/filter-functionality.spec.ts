@@ -1,69 +1,1 @@
-import { test, expect } from '@playwright/test';
-
-test.describe('Filter Functionality', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-  });
-
-  test('should allow adding technology search filters', async ({ page }) => {
-    const techSearchSection = page.getByText('Technology Search');
-    await expect(techSearchSection).toBeVisible();
-    
-    const reactButton = page.locator('button:has-text("React")').first();
-    if (await reactButton.isVisible()) {
-      await reactButton.click();
-      await page.waitForTimeout(2000);
-    }
-    
-    const searchButton = page.getByRole('button', { name: /Search/i });
-    await expect(searchButton).toBeEnabled();
-    
-    await expect(page.getByText('1 filter applied')).toBeVisible();
-  });
-
-  test('should allow clearing all filters', async ({ page }) => {
-    const reactButton = page.getByRole('button', { name: 'React +' });
-    if (await reactButton.isVisible()) {
-      await reactButton.click();
-    }
-    
-    const clearAllButton = page.getByRole('button', { name: /Clear All/i });
-    await clearAllButton.click();
-    
-    await expect(page.getByText('Ready to search 35M+ companies')).toBeVisible();
-    
-    const searchButton = page.getByRole('button', { name: /Search/i });
-    await expect(searchButton).toBeDisabled();
-  });
-
-  test('should show advanced filters section', async ({ page }) => {
-    const advancedFiltersButton = page.getByRole('button', { name: /Advanced Filters/i });
-    await advancedFiltersButton.click();
-
-    await expect(page.getByText('Company Fields')).toBeVisible();
-  });  test('should validate filter requirements', async ({ page }) => {
-    const searchButton = page.getByRole('button', { name: /Search/i });
-    await expect(searchButton).toBeDisabled();
-    
-    await expect(page.getByText('Add at least one filter above to start searching')).toBeVisible();
-  });
-
-  test('should handle filter combinations', async ({ page }) => {
-    const reactButton = page.locator('button:has-text("React")').first();
-    if (await reactButton.isVisible()) {
-      await reactButton.click();
-      await page.waitForTimeout(2000);
-    }
-    
-    const awsButton = page.locator('button:has-text("AWS")').first();
-    if (await awsButton.isVisible()) {
-      await awsButton.click();
-      await page.waitForTimeout(2000);
-    }
-    
-    await expect(page.getByText('1 filter applied')).toBeVisible();
-    
-    const searchButton = page.getByRole('button', { name: /Search/i });
-    await expect(searchButton).toBeEnabled();
-  });
-});
+import { test, expect } from '@playwright/test';test.describe('Filter Functionality', () => {  test.beforeEach(async ({ page }) => {    await page.goto('/');  });  test('should allow adding technology search filters', async ({ page }) => {    const techSearchSection = page.getByText('Technology Search');    await expect(techSearchSection).toBeVisible();    const reactButton = page.locator('button:has-text("React")').first();    if (await reactButton.isVisible()) {      await reactButton.click();      await page.waitForTimeout(2000);    }    const searchButton = page.getByRole('button', { name: /Search/i });    await expect(searchButton).toBeEnabled();    await expect(page.getByText('1 filter applied')).toBeVisible();  });  test('should allow clearing all filters', async ({ page }) => {    const reactButton = page.getByRole('button', { name: 'React +' });    if (await reactButton.isVisible()) {      await reactButton.click();    }    const clearAllButton = page.getByRole('button', { name: /Clear All/i });    await clearAllButton.click();    await expect(page.getByText('Ready to search 35M+ companies')).toBeVisible();    const searchButton = page.getByRole('button', { name: /Search/i });    await expect(searchButton).toBeDisabled();  });  test('should show advanced filters section', async ({ page }) => {    const advancedFiltersButton = page.getByRole('button', { name: /Advanced Filters/i });    await advancedFiltersButton.click();    await expect(page.getByText('Company Fields')).toBeVisible();  });  test('should validate filter requirements', async ({ page }) => {    const searchButton = page.getByRole('button', { name: /Search/i });    await expect(searchButton).toBeDisabled();    await expect(page.getByText('Add at least one filter above to start searching')).toBeVisible();  });  test('should handle filter combinations', async ({ page }) => {    const reactButton = page.locator('button:has-text("React")').first();    if (await reactButton.isVisible()) {      await reactButton.click();      await page.waitForTimeout(2000);    }    const awsButton = page.locator('button:has-text("AWS")').first();    if (await awsButton.isVisible()) {      await awsButton.click();      await page.waitForTimeout(2000);    }    await expect(page.getByText('1 filter applied')).toBeVisible();    const searchButton = page.getByRole('button', { name: /Search/i });    await expect(searchButton).toBeEnabled();  });});
