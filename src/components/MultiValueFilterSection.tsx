@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MultiValueInput } from "@/components/ui/multi-value-input";
-import { SearchField } from "@/lib/types";
+import { SearchField, FilterGroup, FilterCondition } from "@/lib/types";
 import { X, Plus } from "lucide-react";
 
 interface MultiValueFilterSectionProps {
@@ -15,6 +15,7 @@ interface MultiValueFilterSectionProps {
   onChange?: (filters: FilterOption[]) => void;
   disabled?: boolean;
   resetKey?: string | number; // Add this to force reset when needed
+  currentFilters?: FilterGroup; // Add this to sync with loaded queries
 }
 
 interface FilterOption {
@@ -32,24 +33,102 @@ export const MultiValueFilterSection: React.FC<MultiValueFilterSectionProps> = (
   onChange,
   disabled = false,
   resetKey,
+  currentFilters,
 }) => {
   const [filters, setFilters] = useState<FilterOption[]>([
-    { id: "contains_any", type: "ANY_OF", values: [], enabled: false },
-    { id: "contains_all", type: "ALL_OF", values: [], enabled: false },
-    { id: "contains_none", type: "NONE_OF", values: [], enabled: false },
+    { id: `${field}_contains_any`, type: "ANY_OF", values: [], enabled: false },
+    { id: `${field}_contains_all`, type: "ALL_OF", values: [], enabled: false },
+    { id: `${field}_contains_none`, type: "NONE_OF", values: [], enabled: false },
   ]);
+  
+  // Keep track of the last resetKey to detect changes
+  const [lastResetKey, setLastResetKey] = useState(resetKey);
 
-  // Reset filters when resetKey changes
+  // Function to extract filter state from current filters
+  const extractFiltersFromQuery = useCallback((filters: FilterGroup): FilterOption[] => {
+    const extractedFilters: FilterOption[] = [
+      { id: `${field}_contains_any`, type: "ANY_OF" as const, values: [] as string[], enabled: false },
+      { id: `${field}_contains_all`, type: "ALL_OF" as const, values: [] as string[], enabled: false },
+      { id: `${field}_contains_none`, type: "NONE_OF" as const, values: [] as string[], enabled: false },
+    ];
+
+    // Find filter groups that match our field
+    const findMatchingConditions = (group: FilterGroup): FilterCondition[] => {
+      const matchingConditions: FilterCondition[] = [];
+      
+      group.conditions.forEach(condition => {
+        if ('field' in condition && condition.field === field) {
+          matchingConditions.push(condition);
+        } else if ('conditions' in condition) {
+          // Check if this is a filter group for our field
+          const isFieldGroup = condition.conditions.every(cond => 
+            'field' in cond && cond.field === field
+          );
+          if (isFieldGroup) {
+            condition.conditions.forEach(cond => {
+              if ('field' in cond) {
+                matchingConditions.push(cond);
+              }
+            });
+          }
+        }
+      });
+      
+      return matchingConditions;
+    };
+
+    const matchingConditions = findMatchingConditions(filters);
+    
+    matchingConditions.forEach(condition => {
+      if (condition.operator === "IN") {
+        // ANY_OF (IN operator)
+        const anyFilter = extractedFilters.find(f => f.type === "ANY_OF");
+        if (anyFilter && Array.isArray(condition.value)) {
+          anyFilter.values = condition.value.map(String);
+          anyFilter.enabled = anyFilter.values.length > 0;
+        }
+      } else if (condition.operator === "NOT IN") {
+        // NONE_OF (NOT IN operator)
+        const noneFilter = extractedFilters.find(f => f.type === "NONE_OF");
+        if (noneFilter && Array.isArray(condition.value)) {
+          noneFilter.values = condition.value.map(String);
+          noneFilter.enabled = noneFilter.values.length > 0;
+        }
+      } else if (condition.operator === "LIKE") {
+        // ALL_OF (LIKE operator with % wrapping)
+        const allFilter = extractedFilters.find(f => f.type === "ALL_OF");
+        if (allFilter && typeof condition.value === 'string') {
+          const cleanValue = condition.value.replace(/^%|%$/g, '');
+          if (!allFilter.values.includes(cleanValue)) {
+            allFilter.values.push(cleanValue);
+            allFilter.enabled = true;
+          }
+        }
+      }
+    });
+
+    return extractedFilters;
+  }, [field]);
+
+  // Reset filters when resetKey changes or sync with currentFilters
   useEffect(() => {
-    if (resetKey === 'reset') {
-      const resetFilters = [
-        { id: "contains_any", type: "ANY_OF" as const, values: [], enabled: false },
-        { id: "contains_all", type: "ALL_OF" as const, values: [], enabled: false },
-        { id: "contains_none", type: "NONE_OF" as const, values: [], enabled: false },
-      ];
-      setFilters(resetFilters);
+    if (resetKey !== lastResetKey) {
+      if (currentFilters && currentFilters.conditions.length > 0) {
+        // Sync with loaded query
+        const syncedFilters = extractFiltersFromQuery(currentFilters);
+        setFilters(syncedFilters);
+      } else {
+        // Reset to empty state
+        const resetFilters = [
+          { id: `${field}_contains_any`, type: "ANY_OF" as const, values: [], enabled: false },
+          { id: `${field}_contains_all`, type: "ALL_OF" as const, values: [], enabled: false },
+          { id: `${field}_contains_none`, type: "NONE_OF" as const, values: [], enabled: false },
+        ];
+        setFilters(resetFilters);
+      }
+      setLastResetKey(resetKey);
     }
-  }, [resetKey, field]);
+  }, [resetKey, lastResetKey, field, currentFilters, extractFiltersFromQuery]);
 
   const updateFilter = (id: string, updates: Partial<FilterOption>) => {
     const newFilters = filters.map(filter => 

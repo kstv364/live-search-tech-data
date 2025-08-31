@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { SearchObject, FilterGroup, FilterCondition } from "@/lib/types";
 import FilterGroupComponent from "./FilterGroupComponent";
 import { MultiValueFilterSection } from "./MultiValueFilterSection";
@@ -38,8 +38,25 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({ value, onChange, loading 
   console.log("FilterBuilder value.filters:", value.filters);
   
   // Create a reset key based on the filters to reset multi-value components when filters are cleared
-  // Only reset when conditions array is actually empty and different from before
-  const resetKey = value.filters.conditions.length === 0 ? 'reset' : 'active';
+  // or when the structure changes significantly (like when loading a query)
+  const resetKey = useMemo(() => {
+    if (value.filters.conditions.length === 0) {
+      return 'reset';
+    }
+    // Create a key based on the structure of conditions to detect major changes
+    const structureKey = value.filters.conditions.map(condition => {
+      if ('field' in condition) {
+        return `${condition.field}-${condition.operator}`;
+      }
+      if ('conditions' in condition) {
+        return condition.conditions.map(c => 
+          'field' in c ? `${c.field}-${c.operator}` : 'group'
+        ).join('|');
+      }
+      return 'unknown';
+    }).join(';;');
+    return structureKey;
+  }, [value.filters.conditions]);
 
   // Count advanced filter conditions (only individual FilterCondition objects, not normal filter groups)
   const advancedFilterCount = value.filters.conditions.filter(condition => {
@@ -188,6 +205,7 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({ value, onChange, loading 
               onChange={handleTechNameChange}
               disabled={loading}
               resetKey={resetKey}
+              currentFilters={value.filters}
             />
           </div>
 
@@ -211,6 +229,7 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({ value, onChange, loading 
               onChange={handleTechCategoryChange}
               disabled={loading}
               resetKey={resetKey}
+              currentFilters={value.filters}
             />
           </div>
         </div>
