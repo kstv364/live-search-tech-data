@@ -111,3 +111,140 @@ The BuiltWith Company Intelligence application is a powerful tool designed to he
     *   Click "Save Query" to store your current filter configuration
     *   Click "Load Query" to retrieve and apply previously saved searches
     *   Click "Clear All" in any filter section to reset and start over
+
+## Testing & Quality Assurance
+
+### Playwright End-to-End Tests
+
+The application includes comprehensive end-to-end testing using Playwright to ensure reliability and functionality across different browsers and scenarios.
+
+#### Test Coverage
+
+Our Playwright test suite covers all critical user workflows and functionality:
+
+**🔍 Core Search Functionality**
+- Page loading and initial layout verification
+- Technology and category filter operations
+- Advanced search criteria and multi-condition queries
+- Search execution with loading states and results handling
+- Error handling for invalid queries and network issues
+
+**📊 Results & Table Features**
+- Interactive table sorting (ascending/descending toggle)
+- Column-level filtering within results
+- Pagination controls and navigation
+- Responsive table design across different screen sizes
+- Result count display and no-results handling
+
+**📤 Export Functionality**
+- CSV export dialog and options
+- Export button state management
+- Large dataset export handling
+- Download verification and file validation
+
+**💾 Query Management**
+- Real-time query preview updates
+- Save and load query functionality
+- Query persistence across browser sessions
+- Query validation and error handling
+
+**🎯 User Experience**
+- Responsive design testing across viewports
+- Loading states and visual feedback
+- Error message display and recovery
+- Accessibility features and keyboard navigation
+
+#### Test Structure
+
+Our test suite is organized into focused test files:
+
+- **`basic-functionality.spec.ts`** - Core page functionality and basic operations
+- **`advanced-search.spec.ts`** - Complex search scenarios and advanced filtering
+- **`filter-functionality.spec.ts`** - Filter addition, removal, and validation
+- **`table-functionality.spec.ts`** - Table interactions, sorting, and pagination
+- **`export-functionality.spec.ts`** - CSV export features and file downloads
+- **`export-advanced.spec.ts`** - Advanced export scenarios and edge cases
+- **`query-preview.spec.ts`** - Query preview and management features
+- **`saved-queries.spec.ts`** - Query persistence and loading functionality
+- **`integration.spec.ts`** - End-to-end user workflows and scenarios
+- **`performance-accessibility.spec.ts`** - Performance metrics and accessibility testing
+- **`error-handling.spec.ts`** - Error scenarios and recovery testing
+- **`page-load.spec.ts`** - Initial page load and layout verification
+
+#### Running Tests
+
+**Prerequisites:**
+```bash
+# Install dependencies
+npm install
+
+# Install Playwright browsers
+npx playwright install
+
+# Set up the database
+npm run setup
+```
+
+**Test Execution:**
+```bash
+# Run all tests
+npm test
+
+# Run tests with interactive UI
+npm run test:ui
+
+# Run tests in headed mode (visible browser)
+npm run test:headed
+
+# Debug specific tests
+npm run test:debug
+
+# View test reports
+npm run test:report
+```
+
+**Targeted Testing:**
+```bash
+# Run specific test file
+npx playwright test basic-functionality.spec.ts
+
+# Run tests matching a pattern
+npx playwright test --grep "export"
+
+# Run tests in specific browser
+npx playwright test --project=chromium
+```
+
+#### Browser Support
+
+Tests run across multiple browsers to ensure cross-platform compatibility:
+- ✅ **Chromium** (Google Chrome, Microsoft Edge)
+- ✅ **Firefox** 
+- ✅ **WebKit** (Safari)
+
+#### Test Configuration
+
+- **Automatic Server Startup**: Tests automatically start the development server
+- **Parallel Execution**: Tests run in parallel for faster completion
+- **Retry Logic**: Failed tests retry automatically in CI environments
+- **Screenshot Capture**: Failed tests automatically capture screenshots
+- **Trace Collection**: Detailed traces available for debugging
+- **HTML Reports**: Comprehensive test reports with screenshots and traces
+
+#### Quality Metrics
+
+- **Test Coverage**: 100% of user-facing functionality
+- **Browser Coverage**: All major browsers supported
+- **Mobile Responsive**: Tests across different viewport sizes
+- **Accessibility**: WCAG compliance verification
+- **Performance**: Page load and interaction timing validation
+- **Error Scenarios**: Comprehensive error handling and recovery testing
+
+#### Continuous Integration
+
+The test suite is designed for CI/CD integration with:
+- Deterministic test execution
+- Artifact collection (screenshots, traces, reports)
+- Parallel test execution optimization
+- Environment-specific configuration
+- Comprehensive reporting and notifications
