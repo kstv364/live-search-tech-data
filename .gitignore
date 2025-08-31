@@ -47,3 +47,4 @@ database/
 test-results/
 playwright-report/
 tests/screenshots/
+.playwright-mcp/

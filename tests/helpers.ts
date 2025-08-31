@@ -11,6 +11,8 @@ export class TestHelpers {
     const selectors = [
       `button:has-text("${techName}")`,
       `[role="button"]:has-text("${techName}")`,
+      `button[data-tech="${techName}"]`,
+      `.tech-button:has-text("${techName}")`,
     ];
     
     for (const selector of selectors) {
@@ -144,6 +146,123 @@ async clearAllFilters() {
         rect.right <= (window.innerWidth || document.documentElement.clientWidth)
       );
     }, selector);
+  }
+
+  async addCategoryFilter(categoryName: string): Promise<boolean> {
+    const categoryButton = this.page.getByRole('button', { name: categoryName }).first();
+    
+    try {
+      await categoryButton.waitFor({ state: 'visible', timeout: 2000 });
+      await categoryButton.click();
+      await this.page.waitForTimeout(2000);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async openAdvancedFilters(): Promise<boolean> {
+    const advancedButton = this.page.getByRole('button', { name: /Advanced Filters/i });
+    
+    try {
+      await advancedButton.waitFor({ state: 'visible', timeout: 2000 });
+      await advancedButton.click();
+      await this.page.waitForTimeout(1000);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async closeAdvancedFilters(): Promise<boolean> {
+    const advancedButton = this.page.getByRole('button', { name: /Advanced Filters/i });
+    
+    try {
+      const isExpanded = await advancedButton.getAttribute('aria-expanded');
+      if (isExpanded === 'true') {
+        await advancedButton.click();
+        await this.page.waitForTimeout(1000);
+      }
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async saveQuery(queryName: string): Promise<boolean> {
+    try {
+      const saveButton = this.page.getByRole('button', { name: /Save Query/i });
+      await saveButton.click();
+      
+      const dialog = this.page.getByRole('dialog');
+      await dialog.waitFor({ state: 'visible', timeout: 2000 });
+      
+      const nameInput = dialog.getByRole('textbox', { name: /Query name/i });
+      await nameInput.fill(queryName);
+      
+      const saveQueryButton = dialog.getByRole('button', { name: /Save/i });
+      await saveQueryButton.click();
+      
+      await dialog.waitFor({ state: 'hidden', timeout: 2000 });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async loadQuery(queryName: string): Promise<boolean> {
+    try {
+      const loadButton = this.page.getByRole('button', { name: /Load Query/i });
+      await loadButton.click();
+      
+      const queryItem = this.page.getByText(queryName);
+      await queryItem.waitFor({ state: 'visible', timeout: 2000 });
+      await queryItem.click();
+      
+      await this.page.waitForTimeout(1000);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async getSearchResultsCount(): Promise<number> {
+    try {
+      const resultsText = await this.page.getByText(/(\d+)\s+companies found/).textContent();
+      if (resultsText) {
+        const match = resultsText.match(/(\d+)\s+companies found/);
+        return match ? parseInt(match[1]) : 0;
+      }
+      return 0;
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  async setFilterMode(mode: 'Contains Any' | 'Contains All' | 'Contains None'): Promise<boolean> {
+    try {
+      const checkbox = this.page.getByRole('checkbox', { name: mode });
+      await checkbox.waitFor({ state: 'visible', timeout: 2000 });
+      await checkbox.click();
+      await this.page.waitForTimeout(1000);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async waitForSearchToComplete(): Promise<boolean> {
+    try {
+      // Wait for one of these indicators that search is complete
+      await Promise.race([
+        this.page.getByText(/companies found/).waitFor({ timeout: 10000 }),
+        this.page.getByText('No companies found').waitFor({ timeout: 10000 }),
+        this.page.getByRole('table').waitFor({ timeout: 10000 })
+      ]);
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 }
 
