@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MultiValueInput } from "@/components/ui/multi-value-input";
@@ -13,6 +13,8 @@ interface MultiValueFilterSectionProps {
   useTypeahead?: boolean;
   placeholder?: string;
   onChange?: (filters: FilterOption[]) => void;
+  disabled?: boolean;
+  resetKey?: string | number; // Add this to force reset when needed
 }
 
 interface FilterOption {
@@ -28,12 +30,25 @@ export const MultiValueFilterSection: React.FC<MultiValueFilterSectionProps> = (
   useTypeahead = false,
   placeholder = "Add value...",
   onChange,
+  disabled = false,
+  resetKey,
 }) => {
   const [filters, setFilters] = useState<FilterOption[]>([
     { id: "contains_any", type: "ANY_OF", values: [], enabled: false },
     { id: "contains_all", type: "ALL_OF", values: [], enabled: false },
     { id: "contains_none", type: "NONE_OF", values: [], enabled: false },
   ]);
+
+  // Reset filters when resetKey changes
+  useEffect(() => {
+    const initialFilters = [
+      { id: "contains_any", type: "ANY_OF" as const, values: [], enabled: false },
+      { id: "contains_all", type: "ALL_OF" as const, values: [], enabled: false },
+      { id: "contains_none", type: "NONE_OF" as const, values: [], enabled: false },
+    ];
+    setFilters(initialFilters);
+    // Don't call onChange here to avoid infinite loops
+  }, [resetKey]);
 
   const updateFilter = (id: string, updates: Partial<FilterOption>) => {
     const newFilters = filters.map(filter => 
@@ -73,7 +88,8 @@ export const MultiValueFilterSection: React.FC<MultiValueFilterSectionProps> = (
               id={filter.id}
               checked={filter.enabled}
               onChange={() => toggleFilter(filter.id)}
-              className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+              disabled={disabled}
+              className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 disabled:opacity-50"
             />
             <label htmlFor={filter.id} className="text-sm font-medium text-gray-700">
               {getFilterLabel(filter.type)}
@@ -88,6 +104,7 @@ export const MultiValueFilterSection: React.FC<MultiValueFilterSectionProps> = (
                 placeholder={placeholder}
                 field={field}
                 useTypeahead={useTypeahead}
+                disabled={disabled}
               />
             </div>
           )}
@@ -96,7 +113,9 @@ export const MultiValueFilterSection: React.FC<MultiValueFilterSectionProps> = (
 
       {/* Suggested values section */}
       <div className="pt-4 border-t border-gray-200">
-        <div className="text-sm text-gray-500 mb-2">Suggested {title.toLowerCase()}</div>
+        <div className="text-sm text-gray-500 mb-2">
+          {disabled ? 'Loading suggestions...' : `Suggested ${title.toLowerCase()}`}
+        </div>
         <div className="flex flex-wrap gap-2">
           {getSuggestedValues(field).map((suggestion) => (
             <Button
@@ -104,6 +123,7 @@ export const MultiValueFilterSection: React.FC<MultiValueFilterSectionProps> = (
               variant="outline"
               size="sm"
               className="h-7 px-2 text-xs"
+              disabled={disabled}
               onClick={() => {
                 // Add to the first enabled filter, or enable "Contains Any" if none are enabled
                 const enabledFilter = filters.find(f => f.enabled);
@@ -142,11 +162,11 @@ export const MultiValueFilterSection: React.FC<MultiValueFilterSectionProps> = (
 function getSuggestedValues(field: SearchField): string[] {
   switch (field) {
     case "tech_category":
-      return ["Cloud", "Hardware", "Telecom"];
+      return ["Analytics", "CRM", "E-commerce", "Marketing Automation", "Cloud Services", "Security"];
     case "tech_name":
-      return ["Software", "Information Technology"];
+      return ["React", "Salesforce", "AWS", "Google Analytics", "Shopify", "Stripe"];
     case "company_category":
-      return ["SaaS", "E-commerce", "Fintech"];
+      return ["SaaS", "E-commerce", "Fintech", "Healthcare", "Education", "Marketing"];
     default:
       return [];
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { SearchObject, FilterGroup, FilterCondition } from "@/lib/types";
 import FilterGroupComponent from "./FilterGroupComponent";
 import { MultiValueFilterSection } from "./MultiValueFilterSection";
@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 interface FilterBuilderProps {
   value: SearchObject;
   onChange: (filter: SearchObject) => void;
+  loading?: boolean;
 }
 
 interface MultiValueFilter {
@@ -18,18 +19,21 @@ interface MultiValueFilter {
   enabled: boolean;
 }
 
-const FilterBuilder: React.FC<FilterBuilderProps> = ({ value, onChange }) => {
+const FilterBuilder: React.FC<FilterBuilderProps> = ({ value, onChange, loading = false }) => {
   const [open, setOpen] = useState(false);
   const [multiValueFilters, setMultiValueFilters] = useState<MultiValueFilter[]>([]);
+  
+  // Create a reset key based on the filters to reset multi-value components when filters are cleared
+  const resetKey = JSON.stringify(value.filters);
 
-  const handleFilterGroupChange = (updatedFilterGroup: FilterGroup) => {
+  const handleFilterGroupChange = useCallback((updatedFilterGroup: FilterGroup) => {
     onChange({
       ...value,
       filters: updatedFilterGroup
     });
-  };
+  }, [value, onChange]);
 
-  const handleMultiValueFilterChange = (field: string, filters: MultiValueFilter[]) => {
+  const handleMultiValueFilterChange = useCallback((field: string, filters: MultiValueFilter[]) => {
     // Convert multi-value filters to filter conditions
     const activeFilters = filters.filter(f => f.enabled && f.values.length > 0);
     
@@ -85,33 +89,44 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({ value, onChange }) => {
       ...value,
       filters: updatedFilterGroup
     });
-  };
+  }, [value, onChange]);
+
+  // Create stable references for the callbacks
+  const handleTechNameChange = useCallback((filters: MultiValueFilter[]) => 
+    handleMultiValueFilterChange("tech_name", filters), [handleMultiValueFilterChange]);
+  
+  const handleTechCategoryChange = useCallback((filters: MultiValueFilter[]) => 
+    handleMultiValueFilterChange("tech_category", filters), [handleMultiValueFilterChange]);
 
   return (
     <div className="space-y-6">
       {/* Keywords Section */}
       <div className="space-y-4">
-        <h3 className="font-medium text-gray-900">Keywords</h3>
+        <h3 className="font-medium text-gray-900">Technology Search</h3>
         
         <MultiValueFilterSection
-          title="Keyword Search"
+          title="Technology Names"
           field="tech_name"
           useTypeahead={true}
-          placeholder="Search for technologies..."
-          onChange={(filters: MultiValueFilter[]) => handleMultiValueFilterChange("tech_name", filters)}
+          placeholder="Search for technologies (e.g., React, Salesforce, AWS)..."
+          onChange={handleTechNameChange}
+          disabled={loading}
+          resetKey={resetKey}
         />
       </div>
 
       {/* Unified Industry Search Section */}
       <div className="space-y-4">
-        <h3 className="font-medium text-gray-900">Unified Industry Search</h3>
+        <h3 className="font-medium text-gray-900">Category Search</h3>
         
         <MultiValueFilterSection
-          title="Industry Categories"
+          title="Technology Categories"
           field="tech_category"
           useTypeahead={true}
-          placeholder="Search for categories..."
-          onChange={(filters: MultiValueFilter[]) => handleMultiValueFilterChange("tech_category", filters)}
+          placeholder="Search for categories (e.g., CRM, Analytics, E-commerce)..."
+          onChange={handleTechCategoryChange}
+          disabled={loading}
+          resetKey={resetKey}
         />
       </div>
 

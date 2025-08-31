@@ -13,6 +13,7 @@ interface MultiValueInputProps {
   placeholder?: string;
   field?: SearchField;
   useTypeahead?: boolean;
+  disabled?: boolean;
 }
 
 export const MultiValueInput: React.FC<MultiValueInputProps> = ({
@@ -21,6 +22,7 @@ export const MultiValueInput: React.FC<MultiValueInputProps> = ({
   placeholder = "Add value...",
   field,
   useTypeahead = false,
+  disabled = false,
 }) => {
   const [inputValue, setInputValue] = useState("");
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -56,7 +58,7 @@ export const MultiValueInput: React.FC<MultiValueInputProps> = ({
   };
 
   return (
-    <div className="flex flex-wrap gap-1 p-2 border rounded-md bg-background min-h-[40px] focus-within:ring-2 focus-within:ring-ring">
+    <div className={`flex flex-wrap gap-1 p-2 border rounded-md bg-background min-h-[40px] focus-within:ring-2 focus-within:ring-ring ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
       {values.map((value, index) => (
         <div
           key={index}
@@ -66,7 +68,8 @@ export const MultiValueInput: React.FC<MultiValueInputProps> = ({
           <button
             type="button"
             onClick={() => removeValue(index)}
-            className="hover:bg-secondary-foreground/20 rounded p-0.5"
+            disabled={disabled}
+            className="hover:bg-secondary-foreground/20 rounded p-0.5 disabled:cursor-not-allowed"
           >
             <X className="w-3 h-3" />
           </button>
@@ -90,12 +93,13 @@ export const MultiValueInput: React.FC<MultiValueInputProps> = ({
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
             placeholder={placeholder}
+            disabled={disabled}
             className="border-0 shadow-none focus-visible:ring-0 p-0 h-auto"
           />
         )}
       </div>
       
-      {inputValue && (
+      {inputValue && !disabled && (
         <Button
           type="button"
           variant="ghost"

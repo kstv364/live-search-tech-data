@@ -38,12 +38,25 @@ export default function Home() {
   });
   
   // Reset offset when filters change
-  const handleFilterChange = (newSearchObject: SearchObject) => {
+  const handleFilterChange = useCallback((newSearchObject: SearchObject) => {
     setSearchObject({
       ...newSearchObject,
       offset: 0 // Reset to first page when filters change
     });
-  };
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchObject({
+      filters: {
+        operator: "AND",
+        conditions: [],
+      },
+      limit: 10,
+      offset: 0,
+    });
+    setResults([]);
+    setTotalResults(0);
+  }, []);
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
@@ -194,7 +207,7 @@ export default function Home() {
                       <span className="font-medium text-gray-900">Filters</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" onClick={handleClearFilters}>
                         Clear
                       </Button>
                       <Button size="sm" onClick={handleSearch} disabled={loading}>
@@ -207,6 +220,7 @@ export default function Home() {
                   <FilterBuilder
                     value={searchObject}
                     onChange={handleFilterChange}
+                    loading={loading}
                   />
 
                   <div className="mt-6 pt-4 border-t border-gray-200">
@@ -247,18 +261,43 @@ export default function Home() {
                       </div>
                     </div>
                     
-                    <div className="p-12 text-center">
-                      <div className="text-gray-400 mb-2">
-                        <Search className="w-12 h-12 mx-auto mb-4" />
+                    {loading ? (
+                      <div className="p-12 text-center">
+                        <div className="text-gray-400 mb-2">
+                          <Search className="w-12 h-12 mx-auto mb-4 animate-spin" />
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          Searching Fiber's database...
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto">
+                          Please wait while we find companies matching your criteria.
+                        </p>
                       </div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        Search Fiber's database of 35M+ companies.
-                      </h3>
-                      <p className="text-gray-500 max-w-md mx-auto">
-                        💡 Use industry filters to target companies in specific sectors like SaaS, 
-                        fintech, or healthcare.
-                      </p>
-                    </div>
+                    ) : results.length > 0 ? (
+                      <div className="overflow-hidden">
+                        <SearchResults
+                          results={results}
+                          loading={loading}
+                          totalResults={totalResults}
+                          currentOffset={searchObject.offset || 0}
+                          limit={searchObject.limit || 10}
+                          onPageChange={handlePageChange}
+                          onSortChange={(sort) => setSearchObject(prev => ({ ...prev, sort }))}
+                        />
+                      </div>
+                    ) : (
+                      <div className="p-12 text-center">
+                        <div className="text-gray-400 mb-2">
+                          <Search className="w-12 h-12 mx-auto mb-4" />
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          Search Fiber's database of 35M+ companies.
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto">
+                          💡 Use technology and category filters to target companies using specific technologies or belonging to certain sectors.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -275,20 +314,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Search Results */}
-            {results.length > 0 && (
-              <div className="mt-6">
-                <SearchResults
-                  results={results}
-                  loading={loading}
-                  totalResults={totalResults}
-                  currentOffset={searchObject.offset || 0}
-                  limit={searchObject.limit || 10}
-                  onPageChange={handlePageChange}
-                  onSortChange={(sort) => setSearchObject(prev => ({ ...prev, sort }))}
-                />
-              </div>
-            )}
+            {/* Search Results - now integrated above in main pane */}
           </div>
         </div>
       </div>
