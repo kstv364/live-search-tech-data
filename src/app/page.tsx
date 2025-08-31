@@ -46,6 +46,7 @@ export default function Home() {
   }, []);
 
   const handleClearFilters = useCallback(() => {
+    console.log("🔴 Clear filters triggered");
     setSearchObject({
       filters: {
         operator: "AND",

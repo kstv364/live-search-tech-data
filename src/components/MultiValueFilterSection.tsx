@@ -41,16 +41,20 @@ export const MultiValueFilterSection: React.FC<MultiValueFilterSectionProps> = (
 
   // Reset filters when resetKey changes
   useEffect(() => {
-    const initialFilters = [
-      { id: "contains_any", type: "ANY_OF" as const, values: [], enabled: false },
-      { id: "contains_all", type: "ALL_OF" as const, values: [], enabled: false },
-      { id: "contains_none", type: "NONE_OF" as const, values: [], enabled: false },
-    ];
-    setFilters(initialFilters);
-    // Don't call onChange here to avoid infinite loops
-  }, [resetKey]);
+    console.log("🔄 MultiValueFilterSection: resetKey changed", { resetKey, field });
+    if (resetKey === 'reset') {
+      const initialFilters = [
+        { id: "contains_any", type: "ANY_OF" as const, values: [], enabled: false },
+        { id: "contains_all", type: "ALL_OF" as const, values: [], enabled: false },
+        { id: "contains_none", type: "NONE_OF" as const, values: [], enabled: false },
+      ];
+      setFilters(initialFilters);
+      console.log("🔄 MultiValueFilterSection: filters reset to initial state");
+    }
+  }, [resetKey, field]);
 
   const updateFilter = (id: string, updates: Partial<FilterOption>) => {
+    console.log("🟢 MultiValueFilterSection: updateFilter called", { id, updates });
     const newFilters = filters.map(filter => 
       filter.id === id ? { ...filter, ...updates } : filter
     );
@@ -59,6 +63,7 @@ export const MultiValueFilterSection: React.FC<MultiValueFilterSectionProps> = (
   };
 
   const toggleFilter = (id: string) => {
+    console.log("🟡 MultiValueFilterSection: toggleFilter called", { id });
     const newFilters = filters.map(filter => 
       filter.id === id ? { ...filter, enabled: !filter.enabled } : filter
     );

@@ -109,8 +109,19 @@ export function AutocompleteInput({
         sideOffset={4}
         style={{ pointerEvents: "auto" }}
         data-autocomplete="true"
+        onClick={(e) => {
+          console.log("🔵 AutocompleteInput: PopoverContent clicked");
+          e.stopPropagation();
+        }}
       >
-        <Command className="w-full" data-command-root>
+        <Command 
+          className="w-full" 
+          data-command-root
+          onClick={(e) => {
+            console.log("🔵 AutocompleteInput: Command clicked");
+            e.stopPropagation();
+          }}
+        >
           <CommandInput
             value={inputValue}
             onValueChange={(val) => {
@@ -129,14 +140,24 @@ export function AutocompleteInput({
               <CommandItem
                 key={suggestion}
                 value={suggestion}
-                onSelect={() => {
+                onSelect={(value) => {
+                  console.log("🔵 AutocompleteInput: suggestion selected", { suggestion: value });
+                  setInputValue(value);
+                  onChange(value);
+                  onSelect(value);
+                  setOpen(false);
+                }}
+                className="px-4 py-2 text-sm cursor-pointer"
+                style={{ pointerEvents: "auto" }}
+                onClick={(e) => {
+                  console.log("🔵 AutocompleteInput: CommandItem clicked", { suggestion });
+                  e.preventDefault();
+                  e.stopPropagation();
                   setInputValue(suggestion);
                   onChange(suggestion);
                   onSelect(suggestion);
                   setOpen(false);
                 }}
-                className="px-4 py-2 text-sm cursor-pointer"
-                style={{ pointerEvents: "auto" }}
               >
                 {suggestion}
               </CommandItem>

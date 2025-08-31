@@ -24,7 +24,8 @@ const FilterBuilder: React.FC<FilterBuilderProps> = ({ value, onChange, loading 
   const [multiValueFilters, setMultiValueFilters] = useState<MultiValueFilter[]>([]);
   
   // Create a reset key based on the filters to reset multi-value components when filters are cleared
-  const resetKey = JSON.stringify(value.filters);
+  // Only reset when conditions array is actually empty and different from before
+  const resetKey = value.filters.conditions.length === 0 ? 'reset' : 'active';
 
   const handleFilterGroupChange = useCallback((updatedFilterGroup: FilterGroup) => {
     onChange({
