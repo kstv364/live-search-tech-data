@@ -47,3 +47,4 @@ data_model/
 database/
 test-results/
 playwright-report/
+tests/screenshots/
