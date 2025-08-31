@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { SortOption, SearchField } from "@/lib/types";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Download } from "lucide-react";
 
 interface SearchResultsProps {
   results: any[];
@@ -21,6 +21,7 @@ interface SearchResultsProps {
   limit: number;
   onPageChange: (newOffset: number) => void;
   onSortChange: (sort: SortOption[]) => void;
+  onExport?: () => void;
 }
 
 const columns: { label: string; field: SearchField }[] = [
@@ -43,6 +44,7 @@ export function SearchResults({
   limit,
   onPageChange,
   onSortChange,
+  onExport,
 }: SearchResultsProps) {
   const [sortField, setSortField] = React.useState<SearchField | null>(null);
   const [sortDirection, setSortDirection] = React.useState<"asc" | "desc">("asc");
@@ -114,6 +116,17 @@ export function SearchResults({
           )}
         </div>
         <div className="flex items-center space-x-2">
+          {onExport && totalResults > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onExport}
+              className="text-xs"
+            >
+              <Download className="w-3 h-3 mr-1" />
+              Export All
+            </Button>
+          )}
           <Button
             variant="outline"
             onClick={() => onPageChange(Math.max(0, currentOffset - limit))}

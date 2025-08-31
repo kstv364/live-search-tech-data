@@ -6,6 +6,7 @@ import FilterBuilder from "@/components/FilterBuilder";
 import SearchResults from "@/components/SearchResults";
 import QueryPreview from "@/components/QueryPreview";
 import SavedQueries from "@/components/SavedQueries";
+import { ExportDialog } from "@/components/ExportDialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { 
@@ -68,6 +69,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
   const [hasPerformedSearch, setHasPerformedSearch] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
   const search = useCallback(async (params: SearchObject) => {
     setLoading(true);
@@ -193,7 +195,12 @@ export default function Home() {
               </p>
             </div>
             <div className="flex items-center space-x-3">
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setExportDialogOpen(true)}
+                disabled={!hasActiveFilters || totalResults === 0}
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Export CSV
               </Button>
@@ -330,6 +337,7 @@ export default function Home() {
                       limit={searchObject.limit || 10}
                       onPageChange={handlePageChange}
                       onSortChange={(sort) => setSearchObject(prev => ({ ...prev, sort }))}
+                      onExport={() => setExportDialogOpen(true)}
                     />
                   </div>
                 ) : hasSearchedWithNoResults ? (
@@ -414,6 +422,14 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Export Dialog */}
+      <ExportDialog
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        searchObject={searchObject}
+        totalResults={totalResults}
+      />
     </div>
   );
 }
