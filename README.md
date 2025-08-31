@@ -6,19 +6,6 @@ This submission is for Kaustav Chanda (GitHub username = 'kstv364').
 
 The BuiltWith Company Intelligence application is a powerful tool designed to help users search and discover companies based on their technology profiles. It provides a comprehensive database of over 35 million companies, allowing users to apply various filters to narrow down their search and export results for further analysis.
 
-## Application Screenshot
-
-![BuiltWith Company Intelligence Application](https://github.com/fiber-challenges/challenge-kstv364/blob/main/images/application-screenshot.jpg?raw=true)
-
-*The main interface showing the search filters, query preview, and results table with various technology and category options available.*
-
-<details>
-<summary>Alternative image link (if above doesn't load)</summary>
-
-![BuiltWith Company Intelligence Application](./images/app-screenshot-small.jpg)
-
-</details>
-
 ## Key Features
 
 ### 1. Technology Search Filters
