@@ -45,3 +45,5 @@ next-env.d.ts
 tmp/
 data_model/
 database/
+test-results/
+playwright-report/

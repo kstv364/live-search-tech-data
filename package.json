@@ -8,7 +8,12 @@
     "start": "cross-env NODE_ENV=production npx next start",
     "lint": "biome check",
     "format": "biome format --write",
-    "setup": "npx tsx src/setup.ts"
+    "setup": "npx tsx src/setup.ts",
+    "test": "npx playwright test",
+    "test:ui": "npx playwright test --ui",
+    "test:headed": "npx playwright test --headed",
+    "test:debug": "npx playwright test --debug",
+    "test:report": "npx playwright show-report"
   },
   "type": "module",
   "engines": {
@@ -33,6 +38,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
+    "@playwright/test": "^1.55.0",
     "@tailwindcss/postcss": "^4",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
