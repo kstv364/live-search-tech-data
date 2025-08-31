@@ -43,7 +43,13 @@ export default function Home() {
       ...newSearchObject,
       offset: 0 // Reset to first page when filters change
     });
-  }, []);
+    // Reset search state when filters change to avoid showing "no results" prematurely
+    if (JSON.stringify(newSearchObject.filters) !== JSON.stringify(searchObject.filters)) {
+      setHasPerformedSearch(false);
+      setResults([]);
+      setTotalResults(0);
+    }
+  }, [searchObject.filters]);
 
   const handleClearFilters = useCallback(() => {
     setSearchObject({
@@ -56,13 +62,16 @@ export default function Home() {
     });
     setResults([]);
     setTotalResults(0);
+    setHasPerformedSearch(false);
   }, []);
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
+  const [hasPerformedSearch, setHasPerformedSearch] = useState(false);
 
   const search = useCallback(async (params: SearchObject) => {
     setLoading(true);
+    setHasPerformedSearch(true);
     try {
       const response = await fetch("/api/search", {
         method: "POST",
@@ -102,8 +111,8 @@ export default function Home() {
   // Check if any filters are applied
   const hasActiveFilters = searchObject.filters.conditions.length > 0;
   
-  // Check if search has been performed (has results or attempted search with filters)
-  const hasSearched = results.length > 0 || (hasActiveFilters && !loading);
+  // Check if search has been performed AND we have results or performed search with no results
+  const hasSearchedWithNoResults = hasPerformedSearch && results.length === 0 && !loading;
 
   const sidebarItems = [
     { icon: Users, label: "Audiences", active: true },
@@ -240,10 +249,15 @@ export default function Home() {
                         <ExternalLink className="w-4 h-4 mr-2 flex-shrink-0" />
                         <span>Add at least one filter above to start searching for companies!</span>
                       </div>
+                    ) : !hasPerformedSearch ? (
+                      <div className="flex items-center text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <Search className="w-4 h-4 mr-2 flex-shrink-0" />
+                        <span>Filters applied! Click Search to find matching companies.</span>
+                      </div>
                     ) : (
                       <div className="flex items-center text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg p-3">
                         <Search className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span>Filters applied! Click Search to find matching companies.</span>
+                        <span>Search completed. {results.length > 0 ? `Found ${totalResults} companies.` : 'No companies matched your criteria.'}</span>
                       </div>
                     )}
                   </div>
@@ -303,7 +317,7 @@ export default function Home() {
                           onSortChange={(sort) => setSearchObject(prev => ({ ...prev, sort }))}
                         />
                       </div>
-                    ) : hasSearched ? (
+                    ) : hasSearchedWithNoResults ? (
                       <div className="p-12 text-center">
                         <div className="text-gray-400 mb-4">
                           <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
@@ -346,6 +360,20 @@ export default function Home() {
                             <p>• Use <strong>Advanced Filters</strong> for precise targeting</p>
                           </div>
                         </div>
+                      </div>
+                    ) : hasActiveFilters && !hasPerformedSearch ? (
+                      <div className="p-12 text-center">
+                        <div className="text-blue-400 mb-4">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-blue-50 rounded-full flex items-center justify-center">
+                            <Search className="w-8 h-8 text-blue-500" />
+                          </div>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          Ready to search with your filters
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto">
+                          You've applied filters. Click the <strong>Search</strong> button above to find companies matching your criteria.
+                        </p>
                       </div>
                     ) : (
                       <div className="p-12 text-center">
