@@ -20,121 +20,176 @@ export async function GET(req: NextRequest) {
         sql = `
           SELECT DISTINCT tech_name as value
           FROM v_company_tech
-          WHERE tech_name LIKE ? AND tech_name IS NOT NULL
+          WHERE tech_id IS NOT NULL 
+            AND (
+              tech_id IN (SELECT rowid FROM technology_fts WHERE technology_fts MATCH ?)
+              OR tech_name LIKE ?
+            )
+            AND tech_name IS NOT NULL
           ORDER BY tech_name
           LIMIT 10
         `;
-        params = [`%${query}%`];
+        params = [`name:${query}*`, `%${query}%`];
         break;
 
       case 'company_name':
         sql = `
           SELECT DISTINCT company_name as value
           FROM v_company_tech
-          WHERE company_name LIKE ? AND company_name IS NOT NULL
+          WHERE company_id IS NOT NULL 
+            AND (
+              company_id IN (SELECT rowid FROM company_fts WHERE company_fts MATCH ?)
+              OR company_name LIKE ?
+            )
+            AND company_name IS NOT NULL
           ORDER BY company_name
           LIMIT 10
         `;
-        params = [`%${query}%`];
+        params = [`name:${query}*`, `%${query}%`];
         break;
 
       case 'root_domain':
         sql = `
           SELECT DISTINCT root_domain as value
           FROM v_company_tech
-          WHERE root_domain LIKE ? AND root_domain IS NOT NULL
+          WHERE site_id IS NOT NULL 
+            AND (
+              site_id IN (SELECT rowid FROM site_fts WHERE site_fts MATCH ?)
+              OR root_domain LIKE ?
+            )
+            AND root_domain IS NOT NULL
           ORDER BY root_domain
           LIMIT 10
         `;
-        params = [`%${query}%`];
+        params = [`root_domain:${query}*`, `%${query}%`];
         break;
 
       case 'country':
         sql = `
           SELECT DISTINCT country as value
           FROM v_company_tech
-          WHERE country LIKE ? AND country IS NOT NULL
+          WHERE company_id IS NOT NULL 
+            AND (
+              company_id IN (SELECT rowid FROM company_fts WHERE company_fts MATCH ?)
+              OR country LIKE ?
+            )
+            AND country IS NOT NULL
           ORDER BY country
           LIMIT 10
         `;
-        params = [`%${query}%`];
+        params = [`country:${query}*`, `%${query}%`];
         break;
 
       case 'city':
         sql = `
           SELECT DISTINCT city as value
           FROM v_company_tech
-          WHERE city LIKE ? AND city IS NOT NULL
+          WHERE company_id IS NOT NULL 
+            AND (
+              company_id IN (SELECT rowid FROM company_fts WHERE company_fts MATCH ?)
+              OR city LIKE ?
+            )
+            AND city IS NOT NULL
           ORDER BY city
           LIMIT 10
         `;
-        params = [`%${query}%`];
+        params = [`city:${query}*`, `%${query}%`];
         break;
 
       case 'state':
         sql = `
           SELECT DISTINCT state as value
           FROM v_company_tech
-          WHERE state LIKE ? AND state IS NOT NULL
+          WHERE company_id IS NOT NULL 
+            AND (
+              company_id IN (SELECT rowid FROM company_fts WHERE company_fts MATCH ?)
+              OR state LIKE ?
+            )
+            AND state IS NOT NULL
           ORDER BY state
           LIMIT 10
         `;
-        params = [`%${query}%`];
+        params = [`state:${query}*`, `%${query}%`];
         break;
 
       case 'postal_code':
         sql = `
           SELECT DISTINCT postal_code as value
           FROM v_company_tech
-          WHERE postal_code LIKE ? AND postal_code IS NOT NULL
+          WHERE company_id IS NOT NULL 
+            AND (
+              company_id IN (SELECT rowid FROM company_fts WHERE company_fts MATCH ?)
+              OR postal_code LIKE ?
+            )
+            AND postal_code IS NOT NULL
           ORDER BY postal_code
           LIMIT 10
         `;
-        params = [`%${query}%`];
+        params = [`postal_code:${query}*`, `%${query}%`];
         break;
 
       case 'tech_category':
         sql = `
           SELECT DISTINCT tech_category as value
           FROM v_company_tech
-          WHERE tech_category LIKE ? AND tech_category IS NOT NULL
+          WHERE tech_id IS NOT NULL 
+            AND (
+              tech_id IN (SELECT rowid FROM technology_fts WHERE technology_fts MATCH ?)
+              OR tech_category LIKE ?
+            )
+            AND tech_category IS NOT NULL
           ORDER BY tech_category
           LIMIT 10
         `;
-        params = [`%${query}%`];
+        params = [`category:${query}*`, `%${query}%`];
         break;
 
       case 'company_category':
         sql = `
           SELECT DISTINCT company_category as value
           FROM v_company_tech
-          WHERE company_category LIKE ? AND company_category IS NOT NULL
+          WHERE company_id IS NOT NULL 
+            AND (
+              company_id IN (SELECT rowid FROM company_fts WHERE company_fts MATCH ?)
+              OR company_category LIKE ?
+            )
+            AND company_category IS NOT NULL
           ORDER BY company_category
           LIMIT 10
         `;
-        params = [`%${query}%`];
+        params = [`category:${query}*`, `%${query}%`];
         break;
 
       case 'parent_tech_name':
         sql = `
           SELECT DISTINCT parent_name as value
           FROM v_company_tech
-          WHERE parent_name LIKE ? AND parent_name IS NOT NULL
+          WHERE tech_id IS NOT NULL 
+            AND (
+              tech_id IN (SELECT rowid FROM technology_fts WHERE technology_fts MATCH ?)
+              OR parent_name LIKE ?
+            )
+            AND parent_name IS NOT NULL
           ORDER BY parent_name
           LIMIT 10
         `;
-        params = [`%${query}%`];
+        params = [`parent_name:${query}*`, `%${query}%`];
         break;
 
       case 'description':
         sql = `
           SELECT DISTINCT description as value
           FROM v_company_tech
-          WHERE description LIKE ? AND description IS NOT NULL
+          WHERE tech_id IS NOT NULL 
+            AND (
+              tech_id IN (SELECT rowid FROM technology_fts WHERE technology_fts MATCH ?)
+              OR description LIKE ?
+            )
+            AND description IS NOT NULL
           ORDER BY description
           LIMIT 10
         `;
-        params = [`%${query}%`];
+        params = [`description:${query}*`, `%${query}%`];
         break;
 
       default:

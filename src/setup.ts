@@ -106,6 +106,8 @@ DROP TABLE IF EXISTS company_social;
 DROP TABLE IF EXISTS person;
 DROP TABLE IF EXISTS company_tech;
 DROP TABLE IF EXISTS technology_fts;
+DROP TABLE IF EXISTS company_fts;
+DROP TABLE IF EXISTS site_fts;
 DROP TABLE IF EXISTS technology;
 DROP TABLE IF EXISTS company;
     `);
@@ -196,7 +198,11 @@ CREATE TABLE company_tech_rollup_stats (
   FOREIGN KEY(parent_tech_id) REFERENCES technology(id)
 );
 
-CREATE VIRTUAL TABLE technology_fts USING fts5(name, category, content='technology', content_rowid='id');
+CREATE VIRTUAL TABLE technology_fts USING fts5(name, category, description, parent_name, content='technology', content_rowid='id');
+
+CREATE VIRTUAL TABLE company_fts USING fts5(name, category, city, state, country, postal_code, content='company', content_rowid='id');
+
+CREATE VIRTUAL TABLE site_fts USING fts5(root_domain, subdomain, content='site', content_rowid='id');
     `);
 
     // --- Load source files ---
@@ -445,7 +451,17 @@ CREATE VIRTUAL TABLE technology_fts USING fts5(name, category, content='technolo
 
     // --- Refresh FTS (clear then repopulate) ---
     try { db.exec("DELETE FROM technology_fts;"); } catch (e) { /* ignore if empty */ }
-    db.exec(`INSERT INTO technology_fts (rowid, name, category) SELECT id, name, category FROM technology;`);
+    try { db.exec("DELETE FROM company_fts;"); } catch (e) { /* ignore if empty */ }
+    try { db.exec("DELETE FROM site_fts;"); } catch (e) { /* ignore if empty */ }
+    
+    db.exec(`INSERT INTO technology_fts (rowid, name, category, description, parent_name) 
+             SELECT id, name, category, description, parent_name FROM technology;`);
+    
+    db.exec(`INSERT INTO company_fts (rowid, name, category, city, state, country, postal_code) 
+             SELECT id, name, category, city, state, country, postal_code FROM company;`);
+    
+    db.exec(`INSERT INTO site_fts (rowid, root_domain, subdomain) 
+             SELECT id, root_domain, subdomain FROM site;`);
 
     // --- Compute rollup stats (company-level counts of child techs under each parent) ---
     const insertRollup = db.prepare(`INSERT INTO company_tech_rollup_stats (company_id, parent_tech_id, child_count) VALUES (?, ?, ?)`);
