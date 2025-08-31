@@ -73,8 +73,8 @@ test.describe('Advanced Search Features', () => {
   });
 
   test('should handle technology categories filtering', async ({ page }) => {
-    // Check technology categories section
-    await expect(page.getByText('Technology Categories')).toBeVisible();
+    // Check technology categories section using role heading to be specific
+    await expect(page.getByRole('heading', { name: 'Technology Categories' })).toBeVisible();
     
     // First activate the "Contains Any" checkbox for categories
     const categoryContainsAnyCheckbox = page.locator('#tech_category_contains_any');
