@@ -36,11 +36,17 @@ function buildSearchQuery(searchObject: SearchObject) {
         root_domain,
         company_category,
         country,
+        city,
+        state,
+        postal_code,
         company_spend as spend,
+        company_first_indexed as first_indexed,
+        company_last_indexed as last_indexed,
         tech_name,
         tech_category,
-        first_detected as first_indexed,
-        last_detected as last_indexed
+        parent_name as parent_tech_name,
+        premium,
+        description
       FROM v_company_tech
       WHERE 1=1
   `;
@@ -75,11 +81,17 @@ function buildCountQuery(searchObject: SearchObject) {
         root_domain,
         company_category,
         country,
+        city,
+        state,
+        postal_code,
         company_spend as spend,
+        company_first_indexed as first_indexed,
+        company_last_indexed as last_indexed,
         tech_name,
         tech_category,
-        first_detected as first_indexed,
-        last_detected as last_indexed
+        parent_name as parent_tech_name,
+        premium,
+        description
       FROM v_company_tech
       WHERE 1=1
   `;

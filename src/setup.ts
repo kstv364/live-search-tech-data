@@ -444,6 +444,8 @@ SELECT
   t.name as tech_name,
   t.category as tech_category,
   t.parent_name,
+  t.premium,
+  t.description,
   st.first_detected,
   st.last_detected
 FROM company c
