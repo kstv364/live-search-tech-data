@@ -29,7 +29,6 @@ export const MultiValueInput: React.FC<MultiValueInputProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const addValue = (value: string) => {
-    console.log("🟠 MultiValueInput: addValue called", { value });
     const trimmedValue = value.trim();
     if (trimmedValue && !values.includes(trimmedValue)) {
       onChange([...values, trimmedValue]);
@@ -55,7 +54,6 @@ export const MultiValueInput: React.FC<MultiValueInputProps> = ({
   };
 
   const handleAutocompleteSelect = (value: string) => {
-    console.log("🟣 MultiValueInput: handleAutocompleteSelect called", { value });
     addValue(value);
   };
 

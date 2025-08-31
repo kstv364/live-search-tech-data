@@ -46,7 +46,6 @@ export default function Home() {
   }, []);
 
   const handleClearFilters = useCallback(() => {
-    console.log("🔴 Clear filters triggered");
     setSearchObject({
       filters: {
         operator: "AND",
@@ -99,6 +98,12 @@ export default function Home() {
     setSearchObject(newSearchObject);
     search(newSearchObject);
   }, [search, searchObject]);
+
+  // Check if any filters are applied
+  const hasActiveFilters = searchObject.filters.conditions.length > 0;
+  
+  // Check if search has been performed (has results or attempted search with filters)
+  const hasSearched = results.length > 0 || (hasActiveFilters && !loading);
 
   const sidebarItems = [
     { icon: Users, label: "Audiences", active: true },
@@ -211,7 +216,12 @@ export default function Home() {
                       <Button variant="ghost" size="sm" onClick={handleClearFilters}>
                         Clear
                       </Button>
-                      <Button size="sm" onClick={handleSearch} disabled={loading}>
+                      <Button 
+                        size="sm" 
+                        onClick={handleSearch} 
+                        disabled={loading || !hasActiveFilters}
+                        className={!hasActiveFilters ? "opacity-50" : ""}
+                      >
                         <Search className="w-4 h-4 mr-2" />
                         {loading ? "Searching..." : "Search"}
                       </Button>
@@ -225,10 +235,17 @@ export default function Home() {
                   />
 
                   <div className="mt-6 pt-4 border-t border-gray-200">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Run your search to see preview results!
-                    </div>
+                    {!hasActiveFilters ? (
+                      <div className="flex items-center text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                        <ExternalLink className="w-4 h-4 mr-2 flex-shrink-0" />
+                        <span>Add at least one filter above to start searching for companies!</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg p-3">
+                        <Search className="w-4 h-4 mr-2 flex-shrink-0" />
+                        <span>Filters applied! Click Search to find matching companies.</span>
+                      </div>
+                    )}
                   </div>
                 </Card>
 
@@ -286,16 +303,60 @@ export default function Home() {
                           onSortChange={(sort) => setSearchObject(prev => ({ ...prev, sort }))}
                         />
                       </div>
+                    ) : hasSearched ? (
+                      <div className="p-12 text-center">
+                        <div className="text-gray-400 mb-4">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                            <Search className="w-8 h-8 text-gray-400" />
+                          </div>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          No companies found
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto mb-4">
+                          We couldn't find any companies matching your current search criteria.
+                        </p>
+                        <div className="text-sm text-gray-600 space-y-2">
+                          <p>Try adjusting your filters by:</p>
+                          <ul className="list-disc list-inside space-y-1 text-left max-w-sm mx-auto">
+                            <li>Using broader technology names or categories</li>
+                            <li>Removing some filters to expand your search</li>
+                            <li>Checking for typos in your search terms</li>
+                          </ul>
+                        </div>
+                      </div>
+                    ) : !hasActiveFilters ? (
+                      <div className="p-12 text-center">
+                        <div className="text-purple-400 mb-4">
+                          <div className="w-16 h-16 mx-auto mb-4 bg-purple-50 rounded-full flex items-center justify-center">
+                            <Filter className="w-8 h-8 text-purple-500" />
+                          </div>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          Ready to search 35M+ companies
+                        </h3>
+                        <p className="text-gray-500 max-w-md mx-auto mb-6">
+                          Add at least one filter to start discovering companies that match your criteria.
+                        </p>
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 max-w-lg mx-auto">
+                          <h4 className="font-medium text-purple-900 mb-2">Quick start:</h4>
+                          <div className="text-sm text-purple-700 space-y-1 text-left">
+                            <p>• Search by <strong>Technology Names</strong> (e.g., React, Salesforce, AWS)</p>
+                            <p>• Filter by <strong>Technology Categories</strong> (e.g., CRM, Analytics)</p>
+                            <p>• Use <strong>Advanced Filters</strong> for precise targeting</p>
+                          </div>
+                        </div>
+                      </div>
                     ) : (
                       <div className="p-12 text-center">
                         <div className="text-gray-400 mb-2">
                           <Search className="w-12 h-12 mx-auto mb-4" />
                         </div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">
-                          Search Fiber's database of 35M+ companies.
+                          Ready to search
                         </h3>
                         <p className="text-gray-500 max-w-md mx-auto">
-                          💡 Use technology and category filters to target companies using specific technologies or belonging to certain sectors.
+                          Click the Search button to find companies matching your filters.
                         </p>
                       </div>
                     )}
