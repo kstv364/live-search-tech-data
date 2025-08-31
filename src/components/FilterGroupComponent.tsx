@@ -76,13 +76,13 @@ const FilterGroupComponent: React.FC<FilterGroupComponentProps> = ({
               <SelectItem value="NOT">NOT</SelectItem>
             </SelectContent>
           </Select>
-          <div className="flex gap-2">
-            <Button onClick={handleAddCondition} variant="outline" size="sm">
+          <div className="flex gap-2 flex-wrap">
+            <Button onClick={handleAddCondition} variant="outline" size="sm" className="flex-shrink-0">
               <Plus className="h-4 w-4 mr-1" />
               Add Condition
             </Button>
             {depth < 2 && (
-              <Button onClick={handleAddGroup} variant="outline" size="sm">
+              <Button onClick={handleAddGroup} variant="outline" size="sm" className="flex-shrink-0">
                 <Plus className="h-4 w-4 mr-1" />
                 Add Group
               </Button>
