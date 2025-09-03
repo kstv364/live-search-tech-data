@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The BuiltWith Company Intelligence application is a powerful tool designed to help users search and discover companies based on their technology profiles. It provides a comprehensive database of over 35 million companies, allowing users to apply various filters to narrow down their search and export results for further analysis.
+The BuiltWith Company Intelligence application is a powerful tool designed to help users search and discover companies based on their technology profiles. It provides a comprehensive database allowing users to apply various filters to narrow down their search and export results for further analysis.
 
 ## Application Screenshot
 
