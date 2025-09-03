@@ -1,0 +1,8 @@
+node_modules
+npm-debug.log
+dist
+playwright-report
+test-results
+*.sqlite3-query
+*.db-journal
+.env

@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
 
   // Silences weird warnings about detecting multiple lockfiles
   outputFileTracingRoot: path.join(__dirname, "./"),
+  
+  // Enable standalone output for Docker deployment
+  output: 'standalone',
 };
 
 export default nextConfig;

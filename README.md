@@ -1,5 +1,36 @@
 # BuiltWith Company Intelligence Application Documentation
 
+## Quick Start
+
+### Local Development (Recommended)
+```bash
+# Install dependencies
+npm installs
+
+# Setup database
+npm run setup
+
+# Start development server
+npm run dev
+```
+
+The app will be available at http://localhost:3000
+
+### Docker Setup (Alternative)
+
+Docker Compose files are provided for containerized deployment:
+
+```bash
+# Build and run with Docker Compose
+docker compose up --build
+```
+
+**Troubleshooting Docker Issues:**
+If you encounter network/DNS errors when pulling Docker images:
+1. Check your internet connection and DNS settings
+2. Try restarting Docker Desktop
+3. Use the local development setup above as an alternative
+
 ## Introduction
 
 The BuiltWith Company Intelligence application is a powerful tool designed to help users search and discover companies based on their technology profiles. It provides a comprehensive database allowing users to apply various filters to narrow down their search and export results for further analysis.
