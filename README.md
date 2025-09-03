@@ -1,5 +1,3 @@
-This submission is for Kaustav Chanda (GitHub username = 'kstv364').
-
 # BuiltWith Company Intelligence Application Documentation
 
 ## Introduction
