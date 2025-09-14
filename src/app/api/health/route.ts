@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    // Basic health check - you can add database connectivity check here
     return NextResponse.json({ 
       status: 'healthy', 
       timestamp: new Date().toISOString(),
